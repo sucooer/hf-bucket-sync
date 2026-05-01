@@ -141,7 +141,7 @@
 
       <div v-if="notifOpen" class="fixed inset-0 z-20" @click="notifOpen = false"></div>
 
-      <div class="flex-1 overflow-auto custom-scrollbar pt-20">
+      <div class="flex-1 overflow-auto custom-scrollbar pt-20 md:pt-10 lg:pt-6">
         <router-view v-slot="{ Component }">
           <transition name="page" mode="out-in">
             <component :is="Component" />

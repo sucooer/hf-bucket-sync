@@ -96,14 +96,51 @@
         </div>
         
         <div class="flex items-center gap-4 md:gap-6">
-          <router-link
-            to="/notifications"
-            class="relative p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 group"
-          >
-            <BellIcon class="w-6 h-6" />
-            <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white group-hover:scale-125 transition-transform"></span>
-          </router-link>
+          <div class="relative">
+            <button
+              @click="notifOpen = !notifOpen"
+              class="relative p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300"
+            >
+              <BellIcon class="w-6 h-6" />
+              <span v-if="notifications.length" class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+            </button>
+
+            <transition name="fade">
+              <div v-if="notifOpen" class="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50">
+                <div class="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                  <h4 class="font-bold text-slate-900">通知消息</h4>
+                  <router-link to="/notifications" @click="notifOpen = false" class="text-xs text-blue-600 hover:underline">设置</router-link>
+                </div>
+                <div class="max-h-96 overflow-y-auto">
+                  <div v-if="notifications.length === 0" class="p-8 text-center text-slate-400 text-sm">
+                    暂无通知消息
+                  </div>
+                  <div v-else>
+                    <div
+                      v-for="n in notifications"
+                      :key="n.id"
+                      class="px-4 py-3 border-b border-slate-50 hover:bg-slate-50 transition-colors"
+                    >
+                      <div class="flex items-start gap-3">
+                        <div :class="n.type === 'success' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'" class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
+                          <CheckCircleIcon v-if="n.type === 'success'" class="w-4 h-4" />
+                          <ExclamationCircleIcon v-else class="w-4 h-4" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <p class="text-sm font-medium text-slate-900 truncate">{{ n.title }}</p>
+                          <p class="text-xs text-slate-500 mt-0.5 truncate">{{ n.message }}</p>
+                          <p class="text-[10px] text-slate-400 mt-1">{{ n.time }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </transition>
+          </div>
         </div>
+
+        <div v-if="notifOpen" class="fixed inset-0 z-40" @click="notifOpen = false"></div>
       </header>
 
       <div class="flex-1 overflow-auto custom-scrollbar">
@@ -127,12 +164,20 @@ import {
   ClockIcon,
   BellIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon
 } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
 const sidebarOpen = ref(false)
+const notifOpen = ref(false)
 const windowWidth = ref(window.innerWidth)
+const notifications = ref([
+  { id: 1, type: 'success', title: '同步任务完成', message: 'anyaer007/nixeu 同步成功，上传 12 个文件', time: '2分钟前' },
+  { id: 2, type: 'error', title: '同步任务失败', message: 'anyaer007/wolf 连接超时', time: '15分钟前' },
+  { id: 3, type: 'success', title: '定时任务执行', message: '每日备份任务已执行完成', time: '2小时前' }
+])
 
 const isMobile = computed(() => windowWidth.value < 1024)
 
@@ -152,6 +197,7 @@ watch(() => route.path, () => {
   if (isMobile.value) {
     sidebarOpen.value = false
   }
+  notifOpen.value = false
 })
 
 const currentRouteName = computed(() => {

@@ -280,7 +280,7 @@ const newFileName = ref('')
 const toastShow = ref(false)
 const toastMessage = ref('')
 
-const CDN_BASE_URL = 'https://hug.520717.xyz'
+const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || 'https://hug.520717.xyz'
 
 const bucketOptions = computed(() => {
   return buckets.value.map(b => ({ label: b.id.split('/')[1] || b.id, value: b.id }))
@@ -302,16 +302,22 @@ function formatSize(bytes) {
   return `${bytes.toFixed(1)} ${units[i]}`
 }
 
-function getDirectLink(path) {
+function normalizeBucketPath(path) {
   const bucketName = selectedBucket.value.split('/')[1] || selectedBucket.value
   const bucketPrefix = bucketName + '/'
   const pathInBucket = path.startsWith(bucketPrefix) ? path.slice(bucketPrefix.length) : path
   const encodedPath = pathInBucket.split('/').map(p => encodeURIComponent(p)).join('/')
+  return { bucketName, encodedPath }
+}
+
+function getDirectLink(path) {
+  const { encodedPath } = normalizeBucketPath(path)
   return `https://huggingface.co/buckets/${selectedBucket.value}/resolve/${encodedPath}`
 }
 
 function getCdnLink(path) {
-  return `${CDN_BASE_URL}/${path}`
+  const { bucketName, encodedPath } = normalizeBucketPath(path)
+  return `${CDN_BASE_URL}/${bucketName}/${encodedPath}`
 }
 
 function copyLink(url) {

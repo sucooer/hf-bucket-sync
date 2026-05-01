@@ -63,6 +63,7 @@ hf-bucket-sync/
 | HF_TOKEN | HuggingFace Access Token (required) |
 | WEB_PASSWORD | Web UI password (optional, default: hf123456) |
 | LOCAL_PATH | Local path for file browsing (optional) |
+| VITE_CDN_BASE_URL | CDN base URL used by file links (optional, default: https://hug.520717.xyz) |
 
 ## API Endpoints
 

@@ -63,6 +63,7 @@ hf-bucket-sync/
 | HF_TOKEN | HuggingFace Access Token（必需） |
 | WEB_PASSWORD | Web UI 密码（可选，默认: hf123456） |
 | LOCAL_PATH | 本地文件浏览路径（可选） |
+| VITE_CDN_BASE_URL | 文件链接使用的 CDN 基础地址（可选，默认: https://hug.520717.xyz） |
 
 ## API 端点
 

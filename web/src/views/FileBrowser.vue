@@ -116,6 +116,8 @@
                 :key="file.path"
                 class="group hover:bg-blue-50/40 transition-all duration-300 animate-fade-up"
                 :style="{ animationDelay: `${index * 0.02}s` }"
+                :class="{ 'cursor-pointer': file.type === 'directory' }"
+                @click="file.type === 'directory' && navigateToFolder(file.path)"
               >
                 <td class="px-8 py-5">
                   <div class="flex items-center gap-5 min-w-0">
@@ -403,6 +405,11 @@ async function loadBucketTree() {
   } finally {
     loading.value = false
   }
+}
+
+function navigateToFolder(folderPath) {
+  prefix.value = folderPath + '/'
+  loadBucketTree()
 }
 
 onMounted(() => {

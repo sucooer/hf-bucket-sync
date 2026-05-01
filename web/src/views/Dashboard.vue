@@ -67,7 +67,7 @@
     </div>
 
     <!-- Buckets -->
-    <div class="card glass flex flex-col min-h-[520px] animate-fade-up delay-4">
+    <div class="card glass flex flex-col animate-fade-up delay-4">
         <div class="flex items-center justify-between mb-8">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center shadow-inner">
@@ -81,7 +81,7 @@
           </router-link>
         </div>
         
-        <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+        <div class="pr-2 max-h-[70vh] overflow-y-auto custom-scrollbar">
           <div v-if="loading.buckets" class="flex flex-col items-center justify-center h-full space-y-6">
             <div class="relative">
               <div class="w-16 h-16 border-4 border-slate-100 border-t-blue-500 rounded-full animate-spin"></div>

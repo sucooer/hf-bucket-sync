@@ -88,7 +88,7 @@
         </div>
       </div>
 
-      <div class="relative min-h-[500px]">
+      <div class="relative min-h-[260px] md:min-h-[360px]">
         <div v-if="loading" class="absolute inset-0 z-20 bg-white/80 backdrop-blur-md flex flex-col items-center justify-center space-y-6">
           <div class="w-20 h-20 relative">
             <div class="absolute inset-0 border-4 border-slate-100 rounded-full"></div>

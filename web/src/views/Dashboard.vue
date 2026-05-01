@@ -66,10 +66,8 @@
       </div>
     </div>
 
-    <!-- Lists Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-      <!-- Buckets List -->
-      <div class="card glass flex flex-col h-[600px] animate-fade-up delay-4">
+    <!-- Buckets -->
+    <div class="card glass flex flex-col min-h-[520px] animate-fade-up delay-4">
         <div class="flex items-center justify-between mb-8">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center shadow-inner">
@@ -83,7 +81,7 @@
           </router-link>
         </div>
         
-        <div class="flex-1 overflow-y-auto pr-4 custom-scrollbar">
+        <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
           <div v-if="loading.buckets" class="flex flex-col items-center justify-center h-full space-y-6">
             <div class="relative">
               <div class="w-16 h-16 border-4 border-slate-100 border-t-blue-500 rounded-full animate-spin"></div>
@@ -93,19 +91,20 @@
           <div v-else-if="buckets.length === 0" class="flex flex-col items-center justify-center h-full text-slate-300">
             <p class="font-bold">暂无数据</p>
           </div>
-          <div v-else class="space-y-4">
+          <div v-else class="grid grid-cols-1 xl:grid-cols-2 gap-4">
             <div
               v-for="bucket in buckets"
               :key="bucket.id"
-              class="group flex items-center justify-between p-5 bg-white rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
+              class="group flex items-center justify-between p-5 bg-white rounded-2xl border border-slate-100 hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 hover:-translate-y-0.5 transition-all duration-300 cursor-pointer min-w-0"
+              @click="openBucketFiles(bucket.id)"
             >
-              <div class="flex items-center gap-5">
+              <div class="flex items-center gap-4 min-w-0">
                 <div class="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 group-hover:border-blue-100 transition-all duration-500 group-hover:rotate-3">
                   <FolderIcon class="w-6 h-6" />
                 </div>
-                <div class="space-y-1">
-                  <p class="font-black text-slate-900 leading-none group-hover:text-blue-600 transition-colors">{{ bucket.id }}</p>
-                  <p class="text-[10px] text-slate-400 font-black uppercase tracking-wider">{{ bucket.total_files }} 个文件 • {{ formatSize(bucket.size) }}</p>
+                <div class="space-y-1 min-w-0">
+                  <p class="font-black text-slate-900 leading-none group-hover:text-blue-600 transition-colors truncate">{{ bucket.id }}</p>
+                  <p class="text-[10px] text-slate-400 font-black uppercase tracking-wider truncate">{{ bucket.total_files }} 个文件 • {{ formatSize(bucket.size) }}</p>
                 </div>
               </div>
               <div class="shrink-0">
@@ -118,74 +117,20 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Recent History List -->
-      <div class="card glass flex flex-col h-[600px] animate-fade-up delay-4">
-        <div class="flex items-center justify-between mb-8">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center shadow-inner">
-              <ArrowsRightLeftIcon class="w-5 h-5" />
-            </div>
-            <h3 class="text-2xl font-black text-slate-900 tracking-tight">最近同步任务</h3>
-          </div>
-          <router-link to="/sync" class="group flex items-center gap-2 text-blue-600 hover:text-blue-700 text-xs font-black uppercase tracking-widest transition-all">
-            同步历史
-            <ArrowRightIcon class="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </router-link>
-        </div>
-
-        <div class="flex-1 overflow-y-auto pr-4 custom-scrollbar">
-          <div v-if="loading.history" class="flex flex-col items-center justify-center h-full space-y-6">
-            <div class="w-16 h-16 border-4 border-slate-100 border-t-amber-500 rounded-full animate-spin"></div>
-            <p class="text-slate-400 font-black text-[10px] uppercase tracking-[0.2em]">日志获取中...</p>
-          </div>
-          <div v-else-if="recentTasks.length === 0" class="flex flex-col items-center justify-center h-full text-slate-300">
-            <p class="font-bold">暂无同步记录</p>
-          </div>
-          <div v-else class="space-y-4">
-            <div
-              v-for="task in recentTasks"
-              :key="task.id"
-              class="group flex items-center justify-between p-5 bg-white/50 hover:bg-white rounded-2xl border border-transparent hover:border-slate-200 hover:shadow-lg transition-all duration-300"
-            >
-              <div class="min-w-0 flex-1 flex items-center gap-5 mr-4">
-                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-amber-50 group-hover:text-amber-600 transition-colors">
-                  <ChevronRightIcon class="w-4 h-4" />
-                </div>
-                <div class="min-w-0">
-                  <p class="font-bold text-slate-900 truncate text-sm">{{ task.local_path }}</p>
-                  <div class="flex items-center gap-3 mt-1.5">
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter truncate max-w-[120px]">{{ task.bucket_id }}</p>
-                    <div class="w-1 h-1 bg-slate-200 rounded-full"></div>
-                    <p class="text-[10px] text-slate-400 font-bold">{{ formatDate(task.created_at) }}</p>
-                  </div>
-                </div>
-              </div>
-              <div class="shrink-0">
-                <span :class="getStatusClass(task.status)" class="badge px-4">
-                  {{ getStatusText(task.status) }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+</div>
     </div>
-  </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { bucketsApi, syncApi, scheduleApi } from '@/api'
 import {
   CubeIcon,
   ClockIcon,
   ArrowsRightLeftIcon,
   FolderIcon,
-  ArrowRightIcon,
-  ChevronRightIcon
+  ArrowRightIcon
 } from '@heroicons/vue/24/outline'
 
 const stats = ref({
@@ -195,8 +140,8 @@ const stats = ref({
 })
 
 const buckets = ref([])
-const recentTasks = ref([])
-const loading = ref({ buckets: true, history: true })
+const loading = ref({ buckets: true })
+const router = useRouter()
 
 function formatSize(bytes) {
   if (!bytes) return '0 B'
@@ -209,39 +154,12 @@ function formatSize(bytes) {
   return `${bytes.toFixed(1)} ${units[i]}`
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return '-'
-  const date = new Date(dateStr)
-  return date.toLocaleString('zh-CN', { 
-    month: 'short', 
-    day: 'numeric', 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  })
-}
-
-function getStatusClass(status) {
-  const map = {
-    completed: 'badge-success',
-    running: 'badge-warning',
-    failed: 'badge-error',
-    pending: 'badge-info'
-  }
-  return map[status] || 'badge-info'
-}
-
-function getStatusText(status) {
-  const map = {
-    completed: '已完成',
-    running: '运行中',
-    failed: '失败',
-    pending: '等待中'
-  }
-  return map[status] || status
+function openBucketFiles(bucketId) {
+  router.push({ path: '/files', query: { bucket: bucketId } })
 }
 
 async function loadData() {
-  loading.value = { buckets: true, history: true }
+  loading.value = { buckets: true }
 
   try {
     const [bucketsRes, historyRes, scheduleRes] = await Promise.all([
@@ -250,14 +168,13 @@ async function loadData() {
       scheduleApi.list()
     ])
     buckets.value = bucketsRes.data || []
-    recentTasks.value = historyRes.data || []
     stats.value.totalBuckets = buckets.value.length
     stats.value.totalSchedules = scheduleRes.data?.length || 0
     stats.value.recentSyncs = historyRes.data?.length || 0
   } catch (e) {
     console.error('Failed to load data:', e)
   } finally {
-    loading.value = { buckets: false, history: false }
+    loading.value = { buckets: false }
   }
 }
 

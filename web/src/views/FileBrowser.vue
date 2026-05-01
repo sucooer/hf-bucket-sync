@@ -274,6 +274,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { bucketsApi } from '@/api'
 import UISelect from '@/components/UISelect.vue'
 import {
@@ -305,6 +306,7 @@ const newFileName = ref('')
 const toastShow = ref(false)
 const toastMessage = ref('')
 const currentBucket = ref('')
+const route = useRoute()
 
 const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || 'https://hug.520717.xyz'
 
@@ -427,10 +429,14 @@ async function loadBuckets() {
   try {
     const res = await bucketsApi.list()
     buckets.value = res.data || []
-    if (buckets.value.length > 0 && !selectedBucket.value) {
+    const bucketFromQuery = typeof route.query.bucket === 'string' ? route.query.bucket : ''
+    const hasQueryBucket = bucketFromQuery && buckets.value.some(b => b.id === bucketFromQuery)
+    if (hasQueryBucket) {
+      selectedBucket.value = bucketFromQuery
+    } else if (buckets.value.length > 0 && !selectedBucket.value) {
       selectedBucket.value = buckets.value[0].id
-      loadBucketTree()
     }
+    if (selectedBucket.value) loadBucketTree()
   } catch (e) {
     console.error('Failed to load buckets:', e)
   }
@@ -504,6 +510,15 @@ watch(selectedBucket, (newBucket, oldBucket) => {
   if (!newBucket || newBucket === oldBucket) return
   prefix.value = ''
   files.value = []
+})
+
+watch(() => route.query.bucket, (newBucket) => {
+  if (typeof newBucket !== 'string' || !newBucket) return
+  if (newBucket === selectedBucket.value) return
+  const exists = buckets.value.some(b => b.id === newBucket)
+  if (!exists) return
+  selectedBucket.value = newBucket
+  onBucketChange()
 })
 
 onMounted(() => {

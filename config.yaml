@@ -1,0 +1,16 @@
+hf:
+  token: "${HF_TOKEN}"
+
+sync:
+  chunk_size: 100MB
+  max_workers: 4
+
+scheduler:
+  apscheduler_timezone: "Asia/Shanghai"
+
+storage:
+  db_path: "/app/data/app.db"
+
+server:
+  host: "0.0.0.0"
+  port: 8000

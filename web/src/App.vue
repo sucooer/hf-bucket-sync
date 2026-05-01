@@ -1,0 +1,122 @@
+<template>
+  <div class="flex h-screen bg-slate-50/50 selection:bg-blue-100 selection:text-blue-700">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col z-30 transition-all duration-500 relative">
+      <!-- Sidebar Pattern Overlay -->
+      <div class="absolute inset-0 opacity-[0.03] pointer-events-none overflow-hidden">
+        <div class="absolute -top-24 -left-24 w-64 h-64 bg-blue-500 rounded-full blur-[100px]"></div>
+        <div class="absolute top-1/2 left-1/2 w-48 h-48 bg-purple-500 rounded-full blur-[100px]"></div>
+      </div>
+
+      <div class="p-8 relative">
+        <div class="flex items-center gap-4 group cursor-pointer">
+          <div class="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-500/50 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
+            <ArrowsRightLeftIcon class="w-7 h-7 text-white" />
+          </div>
+          <div>
+            <h1 class="text-xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">HF Sync</h1>
+            <p class="text-[10px] font-bold text-blue-400 tracking-[0.2em] uppercase opacity-70">Engine</p>
+          </div>
+        </div>
+      </div>
+      
+      <nav class="flex-1 px-6 space-y-2 relative">
+        <router-link to="/" class="sidebar-link group" :class="{ active: $route.path === '/' }">
+          <ChartBarIcon class="w-5 h-5 group-hover:scale-110 transition-transform" />
+          控制台
+        </router-link>
+        <router-link to="/files" class="sidebar-link group" :class="{ active: $route.path === '/files' }">
+          <FolderIcon class="w-5 h-5 group-hover:scale-110 transition-transform" />
+          文件浏览
+        </router-link>
+        <router-link to="/sync" class="sidebar-link group" :class="{ active: $route.path === '/sync' }">
+          <ArrowsRightLeftIcon class="w-5 h-5 group-hover:scale-110 transition-transform" />
+          同步任务
+        </router-link>
+        <router-link to="/schedule" class="sidebar-link group" :class="{ active: $route.path === '/schedule' }">
+          <ClockIcon class="w-5 h-5 group-hover:scale-110 transition-transform" />
+          定时任务
+        </router-link>
+      </nav>
+
+      <div class="p-8 mt-auto relative">
+        <div class="glass p-4 rounded-2xl bg-white/5 border-white/5 space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+            <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Node Status</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500">v1.0.0</span>
+            <span class="text-[10px] font-mono text-blue-400/50">STABLE</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/50 via-slate-50 to-slate-50">
+      <header class="h-20 glass sticky top-0 z-20 flex items-center justify-between px-10 border-b border-slate-200/50">
+        <div class="flex items-center gap-4">
+          <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full border border-slate-200">
+            <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+            <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Hugging Face Cluster</span>
+          </div>
+          <span class="text-slate-300">/</span>
+          <h2 class="text-slate-900 font-bold tracking-tight">{{ currentRouteName }}</h2>
+        </div>
+        
+        <div class="flex items-center gap-6">
+          <button class="relative p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 group">
+            <BellIcon class="w-6 h-6" />
+            <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white group-hover:scale-125 transition-transform"></span>
+          </button>
+          
+          <div class="h-10 w-[1px] bg-slate-200"></div>
+          
+          <div class="flex items-center gap-3 pl-2 group cursor-pointer">
+            <div class="text-right">
+              <p class="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors leading-none">Admin User</p>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mt-1">Superuser</p>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200 flex items-center justify-center shadow-inner group-hover:shadow-lg group-hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
+              <img src="https://api.dicebear.com/7.x/shapes/svg?seed=HF" alt="Avatar" class="w-8 h-8 opacity-80" />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="flex-1 overflow-auto custom-scrollbar">
+        <router-view v-slot="{ Component }">
+          <transition name="page" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
+      </div>
+    </main>
+  </div>
+</template>
+
+<script setup>
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+import {
+  ChartBarIcon,
+  FolderIcon,
+  ArrowsRightLeftIcon,
+  ClockIcon,
+  BellIcon,
+  MagnifyingGlassIcon
+} from '@heroicons/vue/24/outline'
+
+const route = useRoute()
+
+const currentRouteName = computed(() => {
+  const map = {
+    '/': 'System Overview',
+    '/files': 'File Explorer',
+    '/sync': 'Transfer Hub',
+    '/schedule': 'Automation Engine'
+  }
+  return map[route.path] || 'Dashboard'
+})
+</script>

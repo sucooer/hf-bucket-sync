@@ -9,67 +9,64 @@
       ></div>
     </transition>
 
-    <!-- Sidebar -->
-    <aside
-      class="bg-white/[0.03] backdrop-blur-xl border-r border-white/10 text-white flex flex-col transition-all duration-500 shrink-0"
+    <!-- Sidebar Container -->
+    <div
+      class="md:m-4 md:h-[calc(100vh-32px)] rounded-3xl border border-white/10 bg-black/25 backdrop-blur-xl shadow-2xl overflow-hidden"
       :class="[
-        sidebarCollapsed ? 'w-[92px]' : 'w-[220px]',
-        isMobile ? 'w-[92px]' : '',
+        isMobile ? (sidebarOpen ? 'w-[220px]' : 'w-[92px]') : (sidebarCollapsed ? 'w-[92px]' : 'w-[220px]'),
         {
-          'fixed inset-y-0 left-0 z-40 translate-x-0': sidebarOpen && isMobile,
-          'fixed inset-y-0 left-0 z-40 -translate-x-full lg:translate-x-0 lg:z-30': !sidebarOpen && isMobile,
+          'fixed top-3 bottom-3 left-3 z-40 translate-x-0 h-auto': sidebarOpen && isMobile,
+          'fixed top-3 bottom-3 left-3 z-40 -translate-x-full lg:translate-x-0 lg:z-30 h-auto': !sidebarOpen && isMobile,
           'hidden lg:flex': isMobile && !sidebarOpen
         }
       ]"
     >
-      <div class="pt-6 pb-4 px-4 relative flex justify-center">
-        <div class="w-12 h-12 bg-gradient-to-tr from-cyan-400 to-lime-300 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/30">
-          <ArrowsRightLeftIcon class="w-6 h-6 text-slate-900" />
-        </div>
-      </div>
-      
-      <nav class="flex-1 px-3 space-y-3 relative">
-        <router-link to="/" class="sidebar-link !py-3" :class="[ $route.path === '/' ? 'active' : '', sidebarCollapsed ? '!justify-center !px-0' : '!justify-start !px-4' ]" title="控制台">
-          <ChartBarIcon class="w-5 h-5" />
-          <span v-if="!sidebarCollapsed" class="text-sm">控制台</span>
-        </router-link>
-        <router-link to="/files" class="sidebar-link !py-3" :class="[ $route.path === '/files' ? 'active' : '', sidebarCollapsed ? '!justify-center !px-0' : '!justify-start !px-4' ]" title="文件浏览">
-          <FolderIcon class="w-5 h-5" />
-          <span v-if="!sidebarCollapsed" class="text-sm">文件浏览</span>
-        </router-link>
-        <router-link to="/sync" class="sidebar-link !py-3" :class="[ $route.path === '/sync' ? 'active' : '', sidebarCollapsed ? '!justify-center !px-0' : '!justify-start !px-4' ]" title="同步任务">
-          <ArrowsRightLeftIcon class="w-5 h-5" />
-          <span v-if="!sidebarCollapsed" class="text-sm">同步任务</span>
-        </router-link>
-        <router-link to="/schedule" class="sidebar-link !py-3" :class="[ $route.path === '/schedule' ? 'active' : '', sidebarCollapsed ? '!justify-center !px-0' : '!justify-start !px-4' ]" title="定时任务">
-          <ClockIcon class="w-5 h-5" />
-          <span v-if="!sidebarCollapsed" class="text-sm">定时任务</span>
-        </router-link>
-        <router-link to="/notifications" class="sidebar-link !py-3" :class="[ $route.path === '/notifications' ? 'active' : '', sidebarCollapsed ? '!justify-center !px-0' : '!justify-start !px-4' ]" title="通知设置">
-          <BellIcon class="w-5 h-5" />
-          <span v-if="!sidebarCollapsed" class="text-sm">通知设置</span>
-        </router-link>
-      </nav>
-
-      <div class="pb-5 px-3">
+    <aside
+      class="h-full text-white flex flex-col transition-all duration-500 shrink-0"
+    >
+      <div class="pt-5 pb-4 px-3 relative flex items-center justify-center">
         <button
-          class="w-full h-11 rounded-xl border border-white/10 bg-white/[0.04] text-slate-300 hover:text-white hover:bg-white/10 transition-all"
+          class="w-11 h-11 bg-gradient-to-tr from-cyan-400 to-lime-300 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/30 shrink-0 hover:brightness-110 transition-all"
           @click="toggleSidebarCollapse"
           :title="sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'"
         >
-          <ChevronRightIcon v-if="sidebarCollapsed" class="w-5 h-5 mx-auto" />
-          <ChevronLeftIcon v-else class="w-5 h-5 mx-auto" />
+          <ArrowsRightLeftIcon class="w-5 h-5 text-slate-900" />
         </button>
       </div>
+      
+      <nav class="flex-1 px-3 space-y-3 relative">
+        <router-link to="/" class="sidebar-link !py-3" :class="[ $route.path === '/' ? 'active' : '', showSidebarLabels ? '!justify-start !px-4' : '!justify-center !px-0' ]" title="控制台">
+          <ChartBarIcon class="w-5 h-5" />
+          <span v-if="showSidebarLabels" class="text-sm">控制台</span>
+        </router-link>
+        <router-link to="/files" class="sidebar-link !py-3" :class="[ $route.path === '/files' ? 'active' : '', showSidebarLabels ? '!justify-start !px-4' : '!justify-center !px-0' ]" title="文件浏览">
+          <FolderIcon class="w-5 h-5" />
+          <span v-if="showSidebarLabels" class="text-sm">文件浏览</span>
+        </router-link>
+        <router-link to="/sync" class="sidebar-link !py-3" :class="[ $route.path === '/sync' ? 'active' : '', showSidebarLabels ? '!justify-start !px-4' : '!justify-center !px-0' ]" title="同步任务">
+          <ArrowsRightLeftIcon class="w-5 h-5" />
+          <span v-if="showSidebarLabels" class="text-sm">同步任务</span>
+        </router-link>
+        <router-link to="/schedule" class="sidebar-link !py-3" :class="[ $route.path === '/schedule' ? 'active' : '', showSidebarLabels ? '!justify-start !px-4' : '!justify-center !px-0' ]" title="定时任务">
+          <ClockIcon class="w-5 h-5" />
+          <span v-if="showSidebarLabels" class="text-sm">定时任务</span>
+        </router-link>
+        <router-link to="/notifications" class="sidebar-link !py-3" :class="[ $route.path === '/notifications' ? 'active' : '', showSidebarLabels ? '!justify-start !px-4' : '!justify-center !px-0' ]" title="通知设置">
+          <BellIcon class="w-5 h-5" />
+          <span v-if="showSidebarLabels" class="text-sm">通知设置</span>
+        </router-link>
+      </nav>
+
     </aside>
+    </div>
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[radial-gradient(ellipse_at_top_right,_rgba(91,120,255,0.14),_transparent_40%),radial-gradient(ellipse_at_top_left,_rgba(57,255,207,0.08),_transparent_35%),#111317]">
-      <div class="fixed top-6 right-6 z-30">
-        <div class="h-16 px-4 rounded-3xl border border-white/10 bg-black/25 backdrop-blur-xl flex items-center gap-2 shadow-2xl">
+      <div class="fixed top-4 right-4 md:top-6 md:right-6 z-30">
+        <div class="h-12 md:h-16 px-2.5 md:px-4 rounded-2xl md:rounded-3xl border border-white/10 bg-black/25 backdrop-blur-xl flex items-center gap-1 md:gap-2 shadow-2xl">
           <button
             @click="isMobile ? (sidebarOpen = !sidebarOpen) : reloadPage()"
-            class="p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300"
+            class="p-2 md:p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg md:rounded-xl transition-all duration-300"
             :title="isMobile ? (sidebarOpen ? '关闭菜单' : '打开菜单') : '刷新'"
           >
             <Bars3Icon v-if="isMobile && !sidebarOpen" class="w-5 h-5" />
@@ -77,8 +74,16 @@
             <ArrowPathIcon v-else class="w-5 h-5" />
           </button>
           <button
+            v-if="isMobile"
+            @click="reloadPage"
+            class="p-2 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-300"
+            title="刷新"
+          >
+            <ArrowPathIcon class="w-5 h-5" />
+          </button>
+          <button
             @click="toggleTheme"
-            class="p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300"
+            class="p-2 md:p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg md:rounded-xl transition-all duration-300"
             title="切换主题"
           >
             <SunIcon v-if="isDark" class="w-5 h-5" />
@@ -88,7 +93,7 @@
           <div class="relative">
             <button
               @click="notifOpen = !notifOpen"
-              class="relative p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300"
+              class="relative p-2 md:p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg md:rounded-xl transition-all duration-300"
             >
               <BellIcon class="w-5 h-5" />
               <span v-if="notifications.length > 0" class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-slate-900"></span>
@@ -152,8 +157,6 @@ import {
   ArrowsRightLeftIcon,
   ClockIcon,
   BellIcon,
-  ChevronRightIcon,
-  ChevronLeftIcon,
   Bars3Icon,
   XMarkIcon,
   CheckCircleIcon,
@@ -180,6 +183,7 @@ const isDark = computed(() => {
 const toggleTheme = cycleTheme
 
 const isMobile = computed(() => windowWidth.value < 1024)
+const showSidebarLabels = computed(() => !sidebarCollapsed.value || (isMobile.value && sidebarOpen.value))
 
 const handleResize = () => {
   windowWidth.value = window.innerWidth

@@ -35,26 +35,26 @@
           </div>
         </div>
 
-	        <div class="flex items-center justify-end gap-3 lg:col-span-4">
-	          <button
-	            @click="navigateUp()"
-	            class="btn-secondary !py-3 whitespace-nowrap h-[46px]"
-	            :disabled="!prefix"
-	          >
-	            上一级
-	          </button>
-	          <label class="flex items-center gap-4 cursor-pointer group shrink-0">
-            <div class="relative flex items-center justify-center">
-              <input v-model="recursive" type="checkbox" class="peer sr-only" @change="loadBucketTree()" />
-              <div class="w-12 h-7 bg-slate-800 rounded-full border border-slate-700 peer-checked:bg-blue-600 peer-checked:border-blue-500 transition-all duration-300"></div>
-              <div class="absolute left-1.5 w-4 h-4 bg-white rounded-full transition-all duration-300 peer-checked:translate-x-5 peer-checked:bg-white shadow-lg"></div>
-            </div>
-            <span class="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">递归显示</span>
-          </label>
-	          <button @click="loadBucketTree()" class="btn-primary !py-3 h-[46px] px-6 shadow-blue-900/40 active:scale-95 shrink-0">
-	            浏览
-	          </button>
-	        </div>
+		        <div class="flex flex-wrap md:flex-nowrap items-center justify-start lg:justify-end gap-2 md:gap-3 lg:col-span-4">
+		          <button
+		            @click="navigateUp()"
+		            class="btn-secondary !py-2.5 md:!py-3 whitespace-nowrap h-[42px] md:h-[46px] flex-1 md:flex-none min-w-[92px]"
+		            :disabled="!prefix"
+		          >
+		            上一级
+		          </button>
+		          <label class="flex items-center gap-3 md:gap-4 cursor-pointer group shrink-0 px-1">
+	            <div class="relative flex items-center justify-center">
+	              <input v-model="recursive" type="checkbox" class="peer sr-only" @change="loadBucketTree()" />
+	              <div class="w-12 h-7 bg-slate-800 rounded-full border border-slate-700 peer-checked:bg-blue-600 peer-checked:border-blue-500 transition-all duration-300"></div>
+	              <div class="absolute left-1.5 w-4 h-4 bg-white rounded-full transition-all duration-300 peer-checked:translate-x-5 peer-checked:bg-white shadow-lg"></div>
+	            </div>
+	            <span class="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">递归显示</span>
+	          </label>
+		          <button @click="loadBucketTree()" class="btn-primary !py-2.5 md:!py-3 h-[42px] md:h-[46px] px-4 md:px-6 shadow-blue-900/40 active:scale-95 flex-1 md:flex-none min-w-[92px]">
+		            浏览
+		          </button>
+		        </div>
 	      </div>
 	    </div>
 
@@ -65,23 +65,14 @@
           <div class="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-blue-600 shadow-sm">
             <FolderOpenIcon class="w-6 h-6" />
           </div>
-          <div>
-            <h3 class="text-xl font-black text-slate-900 tracking-tight leading-none">
-              {{ selectedBucket || '请选择 Bucket' }}
-            </h3>
-	            <div class="flex items-center gap-2 mt-1.5">
-	              <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-	              <p class="text-xs font-bold text-slate-400 font-mono tracking-tight truncate max-md">
-	                /{{ prefix || '根目录' }}
-	              </p>
-	            </div>
-              <div class="flex items-center gap-1 mt-2 text-[11px] font-mono text-slate-500 overflow-x-auto">
-                <button type="button" class="hover:text-blue-600 whitespace-nowrap" @click.stop="jumpToPrefix('')">根</button>
-                <template v-for="(segment, index) in prefixSegments" :key="segment.path">
+	          <div class="min-w-0">
+              <div class="flex items-center gap-1 text-sm md:text-base font-mono text-slate-500 overflow-x-auto whitespace-nowrap">
+                <button type="button" class="hover:text-blue-600 font-semibold" @click.stop="jumpToPrefix('')">根</button>
+                <template v-for="segment in prefixSegments" :key="segment.path">
                   <span class="text-slate-300">/</span>
                   <button
                     type="button"
-                    class="hover:text-blue-600 whitespace-nowrap"
+                    class="hover:text-blue-600"
                     @click.stop="jumpToPrefix(segment.path)"
                   >
                     {{ segment.name }}
@@ -139,24 +130,24 @@
                 :class="{ 'cursor-pointer': file.type === 'directory' }"
                 @click="file.type === 'directory' && navigateToFolder(file.path)"
               >
-                <td class="hidden md:table-cell px-4 py-4">
-                  <div class="flex items-center gap-5 min-w-0">
-                    <div :class="file.type === 'directory' ? 'bg-amber-50 text-amber-500' : 'bg-blue-50 text-blue-500'" class="w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-sm group-hover:shadow-md">
-                      <FolderIcon v-if="file.type === 'directory'" class="w-6 h-6" />
-                      <DocumentIcon v-else class="w-6 h-6" />
+                <td class="px-4 py-4">
+                  <div class="flex items-center gap-3 md:gap-5 min-w-0">
+                    <div :class="file.type === 'directory' ? 'bg-amber-50 text-amber-500' : 'bg-blue-50 text-blue-500'" class="w-9 h-9 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-sm group-hover:shadow-md">
+                      <FolderIcon v-if="file.type === 'directory'" class="w-4 h-4 md:w-6 md:h-6" />
+                      <DocumentIcon v-else class="w-4 h-4 md:w-6 md:h-6" />
                     </div>
                     <div class="min-w-0">
-                      <p class="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">{{ getFileName(file.path) }}</p>
-                      <p class="text-[10px] text-slate-400 font-mono truncate mt-1">{{ file.path }}</p>
+                      <p class="font-bold text-slate-900 text-xs md:text-sm truncate group-hover:text-blue-600 transition-colors">{{ getFileName(file.path) }}</p>
+                      <p class="hidden md:block text-[10px] text-slate-400 font-mono truncate mt-1">{{ file.path }}</p>
                     </div>
                   </div>
                 </td>
-                <td class="hidden md:table-cell px-4 py-4">
-                  <span :class="file.type === 'directory' ? 'badge-warning' : 'badge-info'" class="badge !px-3 shadow-sm">
+                <td class="px-2 md:px-4 py-4">
+                  <span :class="file.type === 'directory' ? 'badge-warning' : 'badge-info'" class="badge !px-2 md:!px-3 shadow-sm">
                     {{ file.type === 'directory' ? '目录' : '文件' }}
                   </span>
                 </td>
-                <td class="px-4 py-4">
+                <td class="hidden md:table-cell px-4 py-4">
                   <span class="hidden md:inline text-sm font-bold text-slate-600">
                     {{ file.type === 'directory' ? '--' : formatSize(file.size) }}
                   </span>
@@ -164,7 +155,7 @@
                     {{ file.type === 'directory' ? '--' : formatSizeCompact(file.size) }}
                   </span>
                 </td>
-                <td class="px-4 py-4">
+                <td class="hidden md:table-cell px-4 py-4">
                   <template v-if="file.type === 'file'">
                     <div class="flex flex-col gap-1">
                       <span class="hidden lg:block text-[9px] text-slate-400 font-mono truncate max-w-[180px]">{{ getDirectLink(file.path) }}</span>
@@ -192,23 +183,23 @@
                     </div>
                   </template>
                 </td>
-                <td class="px-4 py-4">
+                <td class="px-2 md:px-4 py-4">
                   <div class="flex items-center justify-end gap-1.5 whitespace-nowrap">
                     <button
                       v-if="file.type === 'file'"
                       @click="openRenameModal(file)"
-                      class="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-white rounded-xl shadow-sm border border-transparent hover:border-slate-200 transition-all"
+                      class="p-2 md:p-2.5 text-slate-400 hover:text-blue-600 hover:bg-white rounded-lg md:rounded-xl shadow-sm border border-transparent hover:border-slate-200 transition-all"
                       title="重命名"
                     >
-                      <PencilIcon class="w-5 h-5" />
+                      <PencilIcon class="w-4 h-4 md:w-5 md:h-5" />
                     </button>
                     <button
                       v-if="file.type === 'file'"
                       @click="confirmDelete(file)"
-                      class="p-2.5 text-slate-400 hover:text-red-600 hover:bg-white rounded-xl shadow-sm border border-transparent hover:border-slate-200 transition-all"
+                      class="p-2 md:p-2.5 text-slate-400 hover:text-red-600 hover:bg-white rounded-lg md:rounded-xl shadow-sm border border-transparent hover:border-slate-200 transition-all"
                       title="删除"
                     >
-                      <TrashIcon class="w-5 h-5" />
+                      <TrashIcon class="w-4 h-4 md:w-5 md:h-5" />
                     </button>
                   </div>
                 </td>

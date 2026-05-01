@@ -103,7 +103,8 @@
                   <FolderIcon class="w-6 h-6" />
                 </div>
                 <div class="space-y-1 min-w-0">
-                  <p class="font-black text-slate-900 leading-none group-hover:text-blue-600 transition-colors truncate">{{ bucket.id }}</p>
+                  <p class="md:hidden font-black text-slate-900 leading-none group-hover:text-blue-600 transition-colors truncate">{{ bucket.id.split('/')[1] || bucket.id }}</p>
+                  <p class="hidden md:block font-black text-slate-900 leading-none group-hover:text-blue-600 transition-colors truncate">{{ bucket.id }}</p>
                   <p class="text-[10px] text-slate-400 font-black uppercase tracking-wider truncate">{{ bucket.total_files }} 个文件 • {{ formatSize(bucket.size) }}</p>
                 </div>
               </div>

@@ -103,18 +103,6 @@
             <BellIcon class="w-6 h-6" />
             <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white group-hover:scale-125 transition-transform"></span>
           </router-link>
-          
-          <div class="h-8 md:h-10 w-[1px] bg-slate-200 hidden sm:block"></div>
-          
-          <div class="hidden sm:flex items-center gap-3 pl-2 group cursor-pointer">
-            <div class="text-right">
-              <p class="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors leading-none">Admin User</p>
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mt-1">Superuser</p>
-            </div>
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-200 flex items-center justify-center shadow-inner group-hover:shadow-lg group-hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
-              <img src="https://api.dicebear.com/7.x/shapes/svg?seed=HF" alt="Avatar" class="w-8 h-8 opacity-80" />
-            </div>
-          </div>
         </div>
       </header>
 

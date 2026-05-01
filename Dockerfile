@@ -7,6 +7,17 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 # Stage 2: Build frontend
 FROM node:20-alpine AS frontend-deps
 WORKDIR /build
+
+ARG VITE_CDN_BASE_URL
+ARG VITE_LOGIN_BG_PC
+ARG VITE_LOGIN_BG_MOBILE
+ARG VITE_AUTH_TIMEOUT_MINUTES
+
+ENV VITE_CDN_BASE_URL=${VITE_CDN_BASE_URL}
+ENV VITE_LOGIN_BG_PC=${VITE_LOGIN_BG_PC}
+ENV VITE_LOGIN_BG_MOBILE=${VITE_LOGIN_BG_MOBILE}
+ENV VITE_AUTH_TIMEOUT_MINUTES=${VITE_AUTH_TIMEOUT_MINUTES}
+
 COPY web/package*.json ./
 RUN npm install
 

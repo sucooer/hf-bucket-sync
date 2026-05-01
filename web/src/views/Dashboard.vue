@@ -4,7 +4,7 @@
     <div class="flex items-end justify-between animate-fade-up">
       <div>
         <h2 class="text-4xl font-black text-slate-900 tracking-tight">控制台</h2>
-        <p class="text-slate-500 font-medium mt-2">实时监控您的 Hugging Face Bucket 同步状态。</p>
+        <p class="hidden md:block text-slate-500 font-medium mt-2">实时监控您的 Hugging Face Bucket 同步状态。</p>
       </div>
       <div class="flex items-center gap-3 px-4 py-2 bg-white rounded-2xl border border-slate-200 shadow-sm">
         <div class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></div>

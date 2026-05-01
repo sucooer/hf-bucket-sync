@@ -62,8 +62,11 @@ hf-bucket-sync/
 |-------------|-------------|
 | HF_TOKEN | HuggingFace Access Token (required) |
 | WEB_PASSWORD | Web UI password (optional, default: hf123456) |
+| VITE_AUTH_TIMEOUT_MINUTES | Login session timeout in minutes (optional, default: 60) |
 | LOCAL_PATH | Local path for file browsing (optional) |
 | VITE_CDN_BASE_URL | CDN base URL used by file links (optional, default: https://hug.520717.xyz) |
+| VITE_LOGIN_BG_PC | Login background image URL for desktop (optional) |
+| VITE_LOGIN_BG_MOBILE | Login background image URL for mobile (optional) |
 
 ## API Endpoints
 

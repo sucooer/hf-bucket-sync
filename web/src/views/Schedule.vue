@@ -3,7 +3,7 @@
     <div class="flex items-end justify-between animate-fade-up">
       <div>
         <h2 class="text-4xl font-black text-slate-900 tracking-tight">定时任务</h2>
-        <p class="text-slate-500 font-medium mt-2">配置自动运行的同步计划，保持数据实时更新。</p>
+        <p class="hidden md:block text-slate-500 font-medium mt-2">配置自动运行的同步计划，保持数据实时更新。</p>
       </div>
       <button @click="showCreate = true" class="btn-primary flex items-center gap-3 shadow-blue-500/40 active:scale-95">
         <PlusIcon class="w-6 h-6" />

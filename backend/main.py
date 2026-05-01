@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi import Request
 from pathlib import Path
 import re
 import os
@@ -11,6 +12,7 @@ from .models.database import get_notification_settings
 from .services.notification import register_notification_channels
 
 WEB_PASSWORD = os.environ.get("WEB_PASSWORD", "hf123456")
+AUTH_TOKEN = "hf-bucket-sync-auth"
 
 app = FastAPI(
     title="HF Bucket Sync",
@@ -32,6 +34,15 @@ app.include_router(sync.router)
 app.include_router(schedule.router)
 app.include_router(notifications.router)
 app.include_router(auth.router)
+
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    path = request.url.path
+    if path.startswith("/api/") and path not in ("/api/auth/login", "/api/health"):
+        if request.headers.get("x-auth-token", "") != AUTH_TOKEN:
+            return JSONResponse({"detail": "未认证"}, status_code=401)
+    return await call_next(request)
 
 
 @app.on_event("startup")
@@ -59,11 +70,6 @@ async def shutdown_event():
 @app.get("/api/health")
 async def health():
     return {"status": "healthy", "service": "hf-bucket-sync"}
-
-
-@app.get("/api/auth/check")
-async def check_auth():
-    return {"authenticated": True}
 
 
 web_dist = Path("/app/web/dist")

@@ -1,13 +1,29 @@
 import axios from 'axios'
+import { getAuthToken, clearAuth } from '@/composables/useAuth'
 
 const api = axios.create({
   baseURL: '/api',
   timeout: 30000
 })
 
+api.interceptors.request.use(
+  config => {
+    const token = getAuthToken()
+    if (token) {
+      config.headers['x-auth-token'] = token
+    }
+    return config
+  },
+  error => Promise.reject(error)
+)
+
 api.interceptors.response.use(
   response => response,
   error => {
+    if (error?.response?.status === 401 && window.location.pathname !== '/login') {
+      clearAuth()
+      window.location.href = '/login'
+    }
     console.error('API Error:', error)
     return Promise.reject(error)
   }

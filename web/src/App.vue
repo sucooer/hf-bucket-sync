@@ -1,5 +1,6 @@
 <template>
-  <div class="flex h-screen bg-[#0f1117] selection:bg-blue-100 selection:text-blue-700 text-slate-100">
+  <router-view v-if="isLoginPage" />
+  <div v-else class="flex h-screen bg-[#0f1117] selection:bg-blue-100 selection:text-blue-700 text-slate-100">
     <!-- Mobile Overlay -->
     <transition name="fade">
       <div
@@ -89,6 +90,13 @@
             <SunIcon v-if="isDark" class="w-5 h-5" />
             <MoonIcon v-else class="w-5 h-5" />
           </button>
+          <button
+            @click="logout()"
+            class="p-2 md:p-2.5 text-slate-300 hover:text-rose-300 hover:bg-white/10 rounded-lg md:rounded-xl transition-all duration-300"
+            title="退出登录"
+          >
+            <ArrowRightOnRectangleIcon class="w-5 h-5" />
+          </button>
 
           <div class="relative">
             <button
@@ -149,7 +157,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   ChartBarIcon,
@@ -162,10 +170,12 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
   ArrowPathIcon,
+  ArrowRightOnRectangleIcon,
   SunIcon,
   MoonIcon
 } from '@heroicons/vue/24/outline'
 import { themeMode, initTheme, cycleTheme } from '@/composables/useTheme'
+import { isAuthenticated, isAuthExpired, refreshAuthExpiry, logout } from '@/composables/useAuth'
 
 const route = useRoute()
 const sidebarOpen = ref(false)
@@ -173,6 +183,8 @@ const notifOpen = ref(false)
 const notifications = ref([])
 const windowWidth = ref(window.innerWidth)
 const sidebarCollapsed = ref(true)
+let authTimer = null
+const activityEvents = ['click', 'keydown', 'touchstart', 'mousemove', 'scroll']
 
 const isDark = computed(() => {
   if (themeMode.value === 'dark') return true
@@ -184,6 +196,7 @@ const toggleTheme = cycleTheme
 
 const isMobile = computed(() => windowWidth.value < 1024)
 const showSidebarLabels = computed(() => !sidebarCollapsed.value || (isMobile.value && sidebarOpen.value))
+const isLoginPage = computed(() => route.path === '/login')
 
 const handleResize = () => {
   windowWidth.value = window.innerWidth
@@ -196,13 +209,24 @@ onMounted(() => {
   initTheme()
   window.addEventListener('resize', handleResize)
   handleResize()
+  startAuthSessionWatcher()
 })
 
-watch(() => route.path, () => {
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
+  stopAuthSessionWatcher()
+})
+
+watch(() => route.path, (newPath) => {
   if (isMobile.value) {
     sidebarOpen.value = false
   }
   notifOpen.value = false
+  if (newPath === '/login') {
+    stopAuthSessionWatcher()
+  } else {
+    startAuthSessionWatcher()
+  }
 })
 
 function reloadPage() {
@@ -212,5 +236,34 @@ function reloadPage() {
 function toggleSidebarCollapse() {
   if (isMobile.value) return
   sidebarCollapsed.value = !sidebarCollapsed.value
+}
+
+function handleUserActivity() {
+  if (isLoginPage.value) return
+  if (!isAuthenticated()) return
+  refreshAuthExpiry()
+}
+
+function startAuthSessionWatcher() {
+  if (isLoginPage.value) return
+  activityEvents.forEach(eventName => {
+    window.addEventListener(eventName, handleUserActivity, { passive: true })
+  })
+  authTimer = window.setInterval(() => {
+    if (isLoginPage.value) return
+    if (isAuthExpired()) {
+      logout()
+    }
+  }, 5000)
+}
+
+function stopAuthSessionWatcher() {
+  activityEvents.forEach(eventName => {
+    window.removeEventListener(eventName, handleUserActivity)
+  })
+  if (authTimer) {
+    window.clearInterval(authTimer)
+    authTimer = null
+  }
 }
 </script>

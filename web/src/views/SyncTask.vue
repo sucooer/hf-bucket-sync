@@ -3,7 +3,7 @@
     <div class="flex items-end justify-between animate-fade-up">
       <div>
         <h2 class="text-4xl font-black text-slate-900 tracking-tight">同步任务</h2>
-        <p class="text-slate-500 font-medium mt-2">手动触发本地目录与远程 Bucket 之间的同步。</p>
+        <p class="hidden md:block text-slate-500 font-medium mt-2">手动触发本地目录与远程 Bucket 之间的同步。</p>
       </div>
     </div>
 

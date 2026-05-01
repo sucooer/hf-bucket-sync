@@ -131,7 +131,7 @@
 
       <div v-if="previewText" class="mt-4 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
         <h4 class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">模板预览:</h4>
-        <pre class="text-xs text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{{ previewText }}</pre>
+        <div class="text-xs text-slate-700 dark:text-slate-300 space-y-2 leading-relaxed" v-html="previewHtml"></div>
       </div>
     </div>
 
@@ -142,7 +142,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import api from '@/api'
 
 const settings = ref({
@@ -163,6 +163,7 @@ const settings = ref({
 
 const testResult = ref(null)
 const previewText = ref('')
+const previewHtml = computed(() => renderMarkdownSafe(previewText.value))
 
 const defaultSuccessTemplate = `## ✅ 同步任务完成
 
@@ -179,7 +180,7 @@ const defaultSuccessTemplate = `## ✅ 同步任务完成
 - ⏭️ 跳过: {skips} 个文件
 
 ---
-*由 HF Bucket Sync 发送*`
+**由 HF Bucket Sync 发送**`
 
 const defaultFailureTemplate = `## ❌ 同步任务失败
 
@@ -195,7 +196,7 @@ const defaultFailureTemplate = `## ❌ 同步任务失败
 \`\`\`
 
 ---
-*由 HF Bucket Sync 发送*`
+**由 HF Bucket Sync 发送**`
 
 async function loadSettings() {
   try {
@@ -255,6 +256,104 @@ function testTemplates() {
   text = text.replace(/{status}/g, '✅ 成功')
 
   previewText.value = text
+}
+
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
+
+function renderInline(text) {
+  return text
+    .replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-600">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+}
+
+function renderMarkdownSafe(markdown) {
+  if (!markdown) return ''
+
+  const escaped = escapeHtml(markdown)
+  const lines = escaped.split('\n')
+  const out = []
+  let inList = false
+  let inCode = false
+
+  for (const rawLine of lines) {
+    const line = rawLine.trimEnd()
+
+    if (line.startsWith('```')) {
+      if (!inCode) {
+        out.push('<pre class="p-3 rounded bg-slate-200/60 dark:bg-slate-800/60 overflow-x-auto"><code>')
+        inCode = true
+      } else {
+        out.push('</code></pre>')
+        inCode = false
+      }
+      continue
+    }
+
+    if (inCode) {
+      out.push(`${line}\n`)
+      continue
+    }
+
+    if (!line.trim()) {
+      if (inList) {
+        out.push('</ul>')
+        inList = false
+      }
+      continue
+    }
+
+    if (line.startsWith('### ')) {
+      if (inList) {
+        out.push('</ul>')
+        inList = false
+      }
+      out.push(`<h4 class="text-sm font-bold mt-2">${renderInline(line.slice(4))}</h4>`)
+      continue
+    }
+
+    if (line.startsWith('## ')) {
+      if (inList) {
+        out.push('</ul>')
+        inList = false
+      }
+      out.push(`<h3 class="text-base font-bold">${renderInline(line.slice(3))}</h3>`)
+      continue
+    }
+
+    if (line.startsWith('- ')) {
+      if (!inList) {
+        out.push('<ul class="list-disc pl-5 space-y-1">')
+        inList = true
+      }
+      out.push(`<li>${renderInline(line.slice(2))}</li>`)
+      continue
+    }
+
+    if (line === '---') {
+      if (inList) {
+        out.push('</ul>')
+        inList = false
+      }
+      out.push('<hr class="border-slate-300 dark:border-slate-600 my-2" />')
+      continue
+    }
+
+    if (inList) {
+      out.push('</ul>')
+      inList = false
+    }
+    out.push(`<p>${renderInline(line)}</p>`)
+  }
+
+  if (inList) out.push('</ul>')
+  if (inCode) out.push('</code></pre>')
+
+  return out.join('')
 }
 
 onMounted(() => {

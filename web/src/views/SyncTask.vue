@@ -98,7 +98,7 @@
 
       <!-- Preview Panel -->
       <div class="lg:col-span-4 space-y-8 animate-fade-up delay-2">
-        <div class="card glass border-dashed border-slate-300 min-h-[500px] flex flex-col shadow-inner">
+        <div class="card glass border-dashed border-slate-300 min-h-[320px] md:min-h-[420px] max-h-[75vh] overflow-y-auto custom-scrollbar flex flex-col shadow-inner">
           <div class="flex items-center gap-3 mb-8">
             <h3 class="text-xl font-black text-slate-900 tracking-tight">同步预览</h3>
             <span v-if="planReady" class="px-2 py-0.5 bg-emerald-100 text-emerald-600 rounded text-[9px] font-black uppercase tracking-widest animate-pulse">就绪</span>
@@ -166,11 +166,42 @@
             </div>
           </div>
         </div>
+
+        <!-- Recent History -->
+        <div class="card !p-0 overflow-hidden animate-fade-up delay-3 shadow-xl">
+          <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/20">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600">
+                <ClockIcon class="w-6 h-6" />
+              </div>
+              <h3 class="text-lg font-black text-slate-900 tracking-tight">最近同步</h3>
+            </div>
+            <div class="flex items-center gap-3">
+              <button
+                @click="recentHistoryCollapsed = !recentHistoryCollapsed"
+                class="text-xs font-black text-slate-500 hover:text-slate-700"
+              >
+                {{ recentHistoryCollapsed ? '展开' : '折叠' }}
+              </button>
+              <a href="#sync-history" class="text-xs font-black text-blue-600 hover:underline">查看全部</a>
+            </div>
+          </div>
+          <div v-if="!recentHistoryCollapsed" class="p-4 space-y-2">
+            <div v-if="history.length === 0" class="text-center text-slate-400 text-sm py-6">暂无同步记录</div>
+            <div v-for="task in history.slice(0, 5)" :key="task.id" class="p-3 rounded-xl border border-slate-100 bg-white/60">
+              <p class="text-sm font-bold text-slate-900 truncate">{{ task.local_path }}</p>
+              <div class="mt-1 flex items-center justify-between">
+                <span class="text-[10px] text-slate-400 font-mono truncate max-w-[45%]">{{ task.bucket_id }}</span>
+                <span :class="getStatusClass(task.status)" class="badge !px-2">{{ getStatusText(task.status) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- History Table -->
-    <div class="card !p-0 overflow-hidden animate-fade-up delay-3 shadow-xl">
+    <!-- Full History Table -->
+    <div id="sync-history" class="card !p-0 overflow-hidden animate-fade-up delay-3 shadow-xl">
       <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/20">
         <div class="flex items-center gap-4">
           <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600">
@@ -179,7 +210,6 @@
           <h3 class="text-xl font-black text-slate-900 tracking-tight">同步历史</h3>
         </div>
       </div>
-
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead>
@@ -193,12 +223,8 @@
           </thead>
           <tbody class="divide-y divide-slate-100/50">
             <tr v-for="task in history" :key="task.id" class="group hover:bg-slate-50/30 transition-all duration-300">
-              <td class="px-8 py-5">
-                <p class="font-black text-slate-900 text-sm truncate max-w-lg leading-none">{{ task.local_path }}</p>
-              </td>
-              <td class="px-8 py-5">
-                <p class="text-[10px] text-slate-400 font-mono uppercase tracking-tighter">{{ task.bucket_id }}</p>
-              </td>
+              <td class="px-8 py-5"><p class="font-black text-slate-900 text-sm truncate max-w-lg leading-none">{{ task.local_path }}</p></td>
+              <td class="px-8 py-5"><p class="text-[10px] text-slate-400 font-mono uppercase tracking-tighter">{{ task.bucket_id }}</p></td>
               <td class="px-8 py-5">
                 <div class="flex items-center gap-3">
                   <div :class="task.direction === 'upload' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'" class="p-1.5 rounded-lg">
@@ -208,12 +234,8 @@
                   <span class="text-xs font-black text-slate-600 uppercase tracking-wider">{{ task.direction === 'upload' ? '上传' : '下载' }}</span>
                 </div>
               </td>
-              <td class="px-8 py-5">
-                <span :class="getStatusClass(task.status)" class="badge !px-4 shadow-sm border-transparent group-hover:border-current transition-all">{{ getStatusText(task.status) }}</span>
-              </td>
-              <td class="px-8 py-5 text-right">
-                <span class="text-xs font-black text-slate-500 font-mono uppercase">{{ formatDate(task.created_at) }}</span>
-              </td>
+              <td class="px-8 py-5"><span :class="getStatusClass(task.status)" class="badge !px-4 shadow-sm border-transparent group-hover:border-current transition-all">{{ getStatusText(task.status) }}</span></td>
+              <td class="px-8 py-5 text-right"><span class="text-xs font-black text-slate-500 font-mono uppercase">{{ formatDate(task.created_at) }}</span></td>
             </tr>
           </tbody>
         </table>
@@ -256,6 +278,7 @@ const plan = ref({})
 const planReady = ref(false)
 const running = ref(false)
 const loading = ref(false)
+const recentHistoryCollapsed = ref(false)
 
 const isValid = computed(() => {
   return form.value.localPath && form.value.bucketId

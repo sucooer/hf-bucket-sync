@@ -7,7 +7,7 @@
     <div class="absolute inset-0 backdrop-blur-[1px]"></div>
 
     <div class="relative w-full max-w-sm rounded-3xl border border-white/20 bg-black/35 backdrop-blur-2xl p-6 md:p-7 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
-      <h1 class="text-2xl font-black text-white mb-1 tracking-tight">HF Bucket Sync</h1>
+      <h1 class="text-2xl font-black text-white mb-1 tracking-tight">{{ SITE_TITLE }}</h1>
       <p class="text-sm text-slate-300 mb-6">请输入访问密码</p>
       <input
         v-model="password"
@@ -34,6 +34,7 @@ const router = useRouter()
 const password = ref('')
 const loading = ref(false)
 const error = ref('')
+const SITE_TITLE = import.meta.env.VITE_SITE_TITLE || 'HF Bucket Sync'
 
 const LOGIN_BG_DEFAULT = 'radial-gradient(ellipse at top right, rgba(91,120,255,0.25), transparent 40%), radial-gradient(ellipse at top left, rgba(57,255,207,0.15), transparent 35%), #0f1117'
 const LOGIN_BG_PC = import.meta.env.VITE_LOGIN_BG_PC || ''

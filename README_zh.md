@@ -63,6 +63,7 @@ hf-bucket-sync/
 | HF_TOKEN | HuggingFace Access Token（必需） |
 | WEB_PASSWORD | Web UI 密码（可选，默认: hf123456） |
 | VITE_AUTH_TIMEOUT_MINUTES | 登录会话超时时间（分钟，可选，默认: 60） |
+| VITE_SITE_TITLE | 网站标题（浏览器标签页/登录页，默认: HF Bucket Sync） |
 | LOCAL_PATH | 本地文件浏览路径（可选） |
 | VITE_CDN_BASE_URL | 文件链接使用的 CDN 基础地址（可选，默认: https://hug.520717.xyz） |
 | VITE_LOGIN_BG_PC | 登录页桌面端背景图 URL（可选） |

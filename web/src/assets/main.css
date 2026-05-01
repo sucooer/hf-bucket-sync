@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --shell-bg: radial-gradient(ellipse at top right, rgba(91,120,255,0.14), transparent 40%), radial-gradient(ellipse at top left, rgba(57,255,207,0.08), transparent 35%), #111317;
+    --panel-bg: rgba(0,0,0,0.25);
+    --accent: #2563eb;
+    --accent-shadow: rgba(37,99,235,0.30);
+  }
+
   body {
     @apply antialiased text-slate-900 bg-slate-50/50;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -27,6 +34,14 @@
 }
 
 @layer components {
+  .app-shell {
+    background: var(--shell-bg);
+  }
+
+  .app-panel {
+    background: var(--panel-bg);
+  }
+
   .card {
     @apply bg-white rounded-2xl border border-slate-200/50 p-6 transition-all duration-300;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
@@ -78,7 +93,9 @@
   }
 
   .sidebar-link.active {
-    @apply bg-blue-600 text-white shadow-lg shadow-blue-600/30;
+    @apply text-white shadow-lg;
+    background-color: var(--accent);
+    box-shadow: 0 8px 24px var(--accent-shadow);
   }
 
   .sidebar-link.active::after {

@@ -1,6 +1,6 @@
 <template>
   <router-view v-if="isLoginPage" />
-  <div v-else class="flex h-screen bg-[#0f1117] selection:bg-blue-100 selection:text-blue-700 text-slate-100">
+  <div v-else class="flex h-screen app-shell selection:bg-blue-100 selection:text-blue-700 text-slate-100">
     <!-- Mobile Overlay -->
     <transition name="fade">
       <div
@@ -12,7 +12,7 @@
 
     <!-- Sidebar Container -->
     <div
-      class="md:m-4 md:h-[calc(100vh-32px)] rounded-3xl border border-white/10 bg-black/25 backdrop-blur-xl shadow-2xl overflow-hidden"
+      class="md:m-4 md:h-[calc(100vh-32px)] rounded-3xl border border-white/10 app-panel backdrop-blur-xl shadow-2xl overflow-hidden"
       :class="[
         isMobile ? (sidebarOpen ? 'w-[220px]' : 'w-[92px]') : (sidebarCollapsed ? 'w-[92px]' : 'w-[220px]'),
         {
@@ -56,13 +56,17 @@
           <BellIcon class="w-5 h-5" />
           <span v-if="showSidebarLabels" class="text-sm">通知设置</span>
         </router-link>
+        <router-link to="/theme" class="sidebar-link !py-3" :class="[ $route.path === '/theme' ? 'active' : '', showSidebarLabels ? '!justify-start !px-4' : '!justify-center !px-0' ]" title="主题设置">
+          <SwatchIcon class="w-5 h-5" />
+          <span v-if="showSidebarLabels" class="text-sm">主题设置</span>
+        </router-link>
       </nav>
 
     </aside>
     </div>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[radial-gradient(ellipse_at_top_right,_rgba(91,120,255,0.14),_transparent_40%),radial-gradient(ellipse_at_top_left,_rgba(57,255,207,0.08),_transparent_35%),#111317]">
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative app-shell">
       <div class="fixed top-4 right-4 md:top-6 md:right-6 z-30">
         <div class="h-12 md:h-16 px-2.5 md:px-4 rounded-2xl md:rounded-3xl border border-white/10 bg-black/25 backdrop-blur-xl flex items-center gap-1 md:gap-2 shadow-2xl">
           <button
@@ -81,14 +85,6 @@
             title="刷新"
           >
             <ArrowPathIcon class="w-5 h-5" />
-          </button>
-          <button
-            @click="toggleTheme"
-            class="p-2 md:p-2.5 text-slate-300 hover:text-white hover:bg-white/10 rounded-lg md:rounded-xl transition-all duration-300"
-            title="切换主题"
-          >
-            <SunIcon v-if="isDark" class="w-5 h-5" />
-            <MoonIcon v-else class="w-5 h-5" />
           </button>
           <button
             @click="logout()"
@@ -165,16 +161,15 @@ import {
   ArrowsRightLeftIcon,
   ClockIcon,
   BellIcon,
+  SwatchIcon,
   Bars3Icon,
   XMarkIcon,
   CheckCircleIcon,
   ExclamationCircleIcon,
   ArrowPathIcon,
   ArrowRightOnRectangleIcon,
-  SunIcon,
-  MoonIcon
 } from '@heroicons/vue/24/outline'
-import { themeMode, initTheme, cycleTheme } from '@/composables/useTheme'
+import { initTheme } from '@/composables/useTheme'
 import { isAuthenticated, isAuthExpired, refreshAuthExpiry, logout } from '@/composables/useAuth'
 
 const route = useRoute()
@@ -185,14 +180,6 @@ const windowWidth = ref(window.innerWidth)
 const sidebarCollapsed = ref(true)
 let authTimer = null
 const activityEvents = ['click', 'keydown', 'touchstart', 'mousemove', 'scroll']
-
-const isDark = computed(() => {
-  if (themeMode.value === 'dark') return true
-  if (themeMode.value === 'light') return false
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-})
-
-const toggleTheme = cycleTheme
 
 const isMobile = computed(() => windowWidth.value < 1024)
 const showSidebarLabels = computed(() => !sidebarCollapsed.value || (isMobile.value && sidebarOpen.value))

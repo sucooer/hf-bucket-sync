@@ -7,19 +7,25 @@
     <div class="absolute inset-0 backdrop-blur-[1px]"></div>
 
     <div class="relative w-full max-w-sm rounded-3xl border border-white/20 bg-black/35 backdrop-blur-2xl p-6 md:p-7 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
-      <h1 class="text-2xl font-black text-white mb-1 tracking-tight">{{ SITE_TITLE }}</h1>
-      <p class="text-sm text-slate-300 mb-6">请输入访问密码</p>
+      <p class="text-4xl text-center mb-3">🔐</p>
+      <h1 class="text-4xl font-black text-white mb-2 tracking-tight text-center">欢迎回来</h1>
+      <p class="text-base text-slate-200 mb-8 text-center">请输入管理员密钥以继续</p>
+      <label class="block text-slate-200 text-sm font-semibold mb-2">管理员密钥</label>
       <input
         v-model="password"
         type="password"
         class="input !bg-white/10 !border-white/20 !text-white mb-4 !placeholder:text-slate-300/70"
-        placeholder="输入密码"
+        placeholder="输入您的管理员密钥..."
         @keyup.enter="handleLogin"
       />
       <button @click="handleLogin" class="btn-primary w-full !rounded-2xl" :disabled="loading">
-        {{ loading ? '登录中...' : '登录' }}
+        {{ loading ? '登录中...' : '登录  →' }}
       </button>
-      <p v-if="error" class="text-rose-400 text-sm mt-3">{{ error }}</p>
+      <p v-if="error" class="text-rose-400 text-sm mt-3 text-center">{{ error }}</p>
+      <div class="mt-8 pt-5 border-t border-white/20 text-center">
+        <p class="text-slate-200 text-sm font-semibold">🛡️ 安全连接</p>
+        <p class="text-slate-400 text-xs mt-1">仅授权用户可访问控制台</p>
+      </div>
     </div>
   </div>
 </template>

@@ -1,76 +1,85 @@
+[中文](README_zh.md) | English
+
 # HF Bucket Sync
 
-HuggingFace Bucket 同步工具 - 将本地文件同步到 HF Bucket 存储。
+A web-based tool for synchronizing local files with HuggingFace Bucket storage.
 
-## 功能特性
+## Features
 
-- 📁 本地文件浏览
-- ☁️ HF Bucket 管理
-- 🔄 双向同步（上传/下载）
-- 🔍 文件过滤（按扩展名、路径）
-- ⏰ 定时任务（Cron 表达式）
-- 📜 同步历史记录
+- 📁 Local file browser
+- ☁️ HF Bucket management
+- 🔄 Bidirectional sync (upload/download)
+- 🔍 File filtering (by extension, path)
+- ⏰ Scheduled tasks (Cron expressions)
+- 📜 Sync history
+- 🔔 Notifications (Telegram, ServerChan)
+- 🎨 Theme (Light/Dark/System)
 
-## 快速开始
+## Quick Start
 
-### 1. 设置环境变量
+### 1. Configure Environment
 
 ```bash
 export HF_TOKEN=your_hf_token_here
+export WEB_PASSWORD=your_password  # Optional, default: hf123456
 ```
 
-### 2. 启动服务
+### 2. Start Services
 
 ```bash
 docker-compose up -d
 ```
 
-### 3. 访问
+### 3. Access
 
 - **Web UI**: http://localhost:8000
 - **API Docs**: http://localhost:8000/api/docs
 
-## 项目结构
+## Project Structure
 
 ```
 hf-bucket-sync/
-├── backend/                    # FastAPI 后端
-│   ├── main.py                # 应用入口
-│   ├── api/routes/            # API 路由
-│   ├── services/              # 业务逻辑
-│   ├── models/                # 数据模型
-│   └── scheduler/             # 定时任务
-├── web/                       # Vue 3 前端
+├── backend/                    # FastAPI backend
+│   ├── main.py                # Application entry
+│   ├── api/routes/            # API routes
+│   ├── services/              # Business logic
+│   ├── models/                # Data models
+│   └── scheduler/             # Scheduled tasks
+├── web/                       # Vue 3 frontend
 │   ├── src/
-│   │   ├── views/            # 页面组件
-│   │   ├── api/              # API 调用
-│   │   └── assets/           # 样式
+│   │   ├── views/            # Page components
+│   │   ├── api/              # API calls
+│   │   └── assets/           # Styles
 │   └── package.json
 ├── Dockerfile
 ├── docker-compose.yml
 └── requirements.txt
 ```
 
-## 配置
+## Configuration
 
-| 环境变量 | 说明 |
-|---------|------|
-| HF_TOKEN | HuggingFace Access Token（必需） |
+| Env Variable | Description |
+|-------------|-------------|
+| HF_TOKEN | HuggingFace Access Token (required) |
+| WEB_PASSWORD | Web UI password (optional, default: hf123456) |
+| LOCAL_PATH | Local path for file browsing (optional) |
 
-## API 端点
+## API Endpoints
 
-| 端点 | 方法 | 功能 |
-|------|------|------|
-| /api/files/list | GET | 浏览本地目录 |
-| /api/buckets | GET | 列出 HF Bucket |
-| /api/buckets/{id}/tree | GET | 列出 Bucket 内容 |
-| /api/sync/dry-run | POST | 预览同步计划 |
-| /api/sync/execute | POST | 执行同步 |
-| /api/sync/history | GET | 同步历史 |
-| /api/schedules | GET/POST | 定时任务管理 |
-| /api/schedules/{id} | PUT/DELETE | 更新/删除定时任务 |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| /api/files/list | GET | Browse local directory |
+| /api/buckets | GET | List HF Buckets |
+| /api/buckets/{id}/tree | GET | List Bucket contents |
+| /api/sync/dry-run | POST | Preview sync plan |
+| /api/sync/execute | POST | Execute sync |
+| /api/sync/history | GET | Sync history |
+| /api/schedules | GET/POST | Schedule management |
+| /api/schedules/{id} | PUT/DELETE | Update/delete schedule |
+| /api/notifications/settings | GET/POST | Notification settings |
+| /api/notifications/test | POST | Test notification |
 
-## 过滤规则示例
+## Filter Rules Example
 
 ```json
 {
@@ -79,11 +88,15 @@ hf-bucket-sync/
 }
 ```
 
-## Cron 表达式示例
+## Cron Expression Examples
 
-| 表达式 | 说明 |
-|--------|------|
-| `0 2 * * *` | 每天凌晨 2 点 |
-| `0 */4 * * *` | 每 4 小时 |
-| `0 0 * * 0` | 每周日凌晨 |
-| `*/30 * * * *` | 每 30 分钟 |
+| Expression | Description |
+|-----------|-------------|
+| `0 2 * * *` | Daily at 2:00 AM |
+| `0 */4 * * *` | Every 4 hours |
+| `0 0 * * 0` | Sunday midnight |
+| `*/30 * * * *` | Every 30 minutes |
+
+## License
+
+MIT License

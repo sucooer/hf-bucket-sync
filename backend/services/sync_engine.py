@@ -1,4 +1,5 @@
 import os
+import time
 from pathlib import Path
 from typing import Optional
 from datetime import datetime
@@ -10,6 +11,11 @@ from ..models.database import save_sync_task, update_sync_task_status, get_notif
 from .hf_client import get_hf_client
 from .notification import send_sync_notification, notification_service
 
+SYNC_RETRY_MAX_ATTEMPTS = max(1, int(os.environ.get("SYNC_RETRY_MAX_ATTEMPTS", "3")))
+SYNC_RETRY_BASE_DELAY_SECONDS = max(0.1, float(os.environ.get("SYNC_RETRY_BASE_DELAY_SECONDS", "1")))
+TRANSIENT_ERROR_KEYWORDS = [
+    "timeout", "timed out", "connection", "network", "temporarily", "unreachable", "reset by peer", "503", "502"
+]
 
 def create_dry_run_plan(task: SyncTask) -> SyncPlan:
     try:
@@ -77,6 +83,29 @@ async def _send_notification(task_name: str, status: str, message: str, stats: d
         await send_sync_notification(task_name, status, message, stats, channels)
 
 
+def _is_transient_error(error_text: str) -> bool:
+    text = (error_text or "").lower()
+    return any(keyword in text for keyword in TRANSIENT_ERROR_KEYWORDS)
+
+
+def _run_sync_once(task: SyncTask):
+    source = task.local_path
+    if task.direction == "upload":
+        destination = f"hf://buckets/{task.bucket_id}/{task.bucket_prefix}".rstrip("/")
+    else:
+        destination = task.local_path
+        source = f"hf://buckets/{task.bucket_id}/{task.bucket_prefix}".rstrip("/")
+    return hf_sync_bucket(
+        source=source,
+        destination=destination,
+        delete=task.delete,
+        include=task.filter.include_patterns if task.filter.include_patterns else None,
+        exclude=task.filter.exclude_patterns if task.filter.exclude_patterns else None,
+        dry_run=False,
+        verbose=True
+    )
+
+
 def execute_sync_task(task: SyncTask) -> SyncResult:
     task.status = "running"
     save_sync_task(task)
@@ -84,22 +113,20 @@ def execute_sync_task(task: SyncTask) -> SyncResult:
     try:
         client = get_hf_client()
 
-        source = task.local_path
-        if task.direction == "upload":
-            destination = f"hf://buckets/{task.bucket_id}/{task.bucket_prefix}".rstrip("/")
-        else:
-            destination = task.local_path
-            source = f"hf://buckets/{task.bucket_id}/{task.bucket_prefix}".rstrip("/")
-
-        result = hf_sync_bucket(
-            source=source,
-            destination=destination,
-            delete=task.delete,
-            include=task.filter.include_patterns if task.filter.include_patterns else None,
-            exclude=task.filter.exclude_patterns if task.filter.exclude_patterns else None,
-            dry_run=False,
-            verbose=True
-        )
+        result = None
+        final_error = None
+        for attempt in range(1, SYNC_RETRY_MAX_ATTEMPTS + 1):
+            try:
+                result = _run_sync_once(task)
+                final_error = None
+                break
+            except Exception as exc:
+                final_error = exc
+                if attempt >= SYNC_RETRY_MAX_ATTEMPTS or not _is_transient_error(str(exc)):
+                    break
+                time.sleep(SYNC_RETRY_BASE_DELAY_SECONDS * (2 ** (attempt - 1)))
+        if final_error:
+            raise final_error
 
         uploads = 0
         downloads = 0

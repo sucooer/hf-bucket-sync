@@ -60,6 +60,10 @@
           <SwatchIcon class="w-5 h-5" />
           <span v-if="showSidebarLabels" class="text-sm">主题设置</span>
         </router-link>
+        <router-link to="/audit" class="sidebar-link !py-3" :class="[ $route.path === '/audit' ? 'active' : '', showSidebarLabels ? '!justify-start !px-4' : '!justify-center !px-0' ]" title="审计日志">
+          <DocumentTextIcon class="w-5 h-5" />
+          <span v-if="showSidebarLabels" class="text-sm">审计日志</span>
+        </router-link>
       </nav>
 
     </aside>
@@ -87,7 +91,7 @@
             <ArrowPathIcon class="w-5 h-5" />
           </button>
           <button
-            @click="logout()"
+            @click="doLogout()"
             class="p-2 md:p-2.5 text-slate-300 hover:text-rose-300 hover:bg-white/10 rounded-lg md:rounded-xl transition-all duration-300"
             title="退出登录"
           >
@@ -155,6 +159,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
+import { authApi } from '@/api'
 import {
   ChartBarIcon,
   FolderIcon,
@@ -162,6 +167,7 @@ import {
   ClockIcon,
   BellIcon,
   SwatchIcon,
+  DocumentTextIcon,
   Bars3Icon,
   XMarkIcon,
   CheckCircleIcon,
@@ -218,6 +224,15 @@ watch(() => route.path, (newPath) => {
 
 function reloadPage() {
   window.location.reload()
+}
+
+async function doLogout() {
+  try {
+    await authApi.logout()
+  } catch (e) {
+  } finally {
+    logout()
+  }
 }
 
 function toggleSidebarCollapse() {

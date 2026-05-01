@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException
-from typing import Optional
+from fastapi import APIRouter, HTTPException, Request
 
 from ...models.schemas import SyncTask, SyncTaskCreate, SyncPlan, SyncResult
-from ...models.database import save_sync_task, get_sync_tasks, update_sync_task_status
-from ...services.sync_engine import create_dry_run_plan, execute_sync_task
+from ...models.database import save_sync_task, get_sync_tasks, add_audit_log
+from ...services.sync_engine import create_dry_run_plan
+from ...services.sync_queue import enqueue_sync_task, get_queue_size
 
 router = APIRouter(prefix="/api/sync", tags=["sync"])
 
@@ -27,8 +27,10 @@ async def dry_run(task_data: SyncTaskCreate) -> SyncPlan:
 
 
 @router.post("/execute", response_model=SyncResult)
-async def execute(task_data: SyncTaskCreate) -> SyncResult:
+async def execute(task_data: SyncTaskCreate, request: Request) -> SyncResult:
     try:
+        actor = getattr(request.state, "user", "web_user")
+        ip = request.client.host if request.client else ""
         task = SyncTask(
             local_path=task_data.local_path,
             bucket_id=task_data.bucket_id,
@@ -37,8 +39,32 @@ async def execute(task_data: SyncTaskCreate) -> SyncResult:
             filter=task_data.filter,
             delete=task_data.delete
         )
+        task.status = "queued"
+        task.message = "任务已进入队列"
         save_sync_task(task)
-        return execute_sync_task(task)
+        add_audit_log(
+            actor,
+            "sync_execute",
+            "sync_task",
+            f"提交同步任务: {task.id}",
+            {
+                "task_id": task.id,
+                "local_path": task.local_path,
+                "bucket_id": task.bucket_id,
+                "bucket_prefix": task.bucket_prefix,
+                "direction": task.direction,
+                "delete": task.delete
+            },
+            ip
+        )
+        await enqueue_sync_task(task, actor=actor, ip=ip)
+        return SyncResult(
+            task_id=task.id,
+            status="queued",
+            message=f"任务已入队，当前队列长度: {get_queue_size()}",
+            stats={},
+            queued=True
+        )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

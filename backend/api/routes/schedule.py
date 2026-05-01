@@ -5,25 +5,33 @@ from datetime import datetime
 import pytz
 
 from ...models.schemas import Schedule, ScheduleCreate, ScheduleUpdate
-from ...models.database import save_schedule, get_schedules, get_schedule_by_id, delete_schedule, update_schedule_runs
-from ...services.sync_engine import execute_schedule_sync
+from ...models.schemas import SyncTask
+from ...models.database import save_schedule, get_schedules, get_schedule_by_id, delete_schedule, update_schedule_runs, save_sync_task, add_audit_log
+from ...services.sync_queue import enqueue_sync_task
 
 router = APIRouter(prefix="/api/schedules", tags=["schedules"])
 
 scheduler = AsyncIOScheduler(timezone=pytz.timezone("Asia/Shanghai"))
 
 
-def run_sync_job(schedule_id: str, schedule_data: dict):
-    import asyncio
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+async def run_sync_job(schedule_id: str, schedule_data: dict):
     try:
-        result = execute_schedule_sync(schedule_data)
+        task = SyncTask(
+            local_path=schedule_data["local_path"],
+            bucket_id=schedule_data["bucket_id"],
+            bucket_prefix=schedule_data.get("bucket_prefix", ""),
+            direction=schedule_data.get("direction", "upload"),
+            filter=schedule_data.get("filter", {}),
+            delete=schedule_data.get("delete", False),
+            status="queued",
+            message=f"定时任务触发: {schedule_id}"
+        )
+        save_sync_task(task)
+        await enqueue_sync_task(task, actor="scheduler", ip="system")
+        add_audit_log("scheduler", "sync_execute", "schedule", f"定时任务入队: {schedule_id}", {"task_id": task.id})
         update_schedule_runs(schedule_id, datetime.now())
     except Exception as e:
         print(f"Scheduled sync failed: {e}")
-    finally:
-        loop.close()
 
 
 def add_job_to_scheduler(schedule: Schedule):

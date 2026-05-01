@@ -138,6 +138,7 @@ class SyncResult(BaseModel):
     status: str
     message: str
     stats: dict
+    queued: bool = False
 
 
 class ScheduleCreate(BaseModel):

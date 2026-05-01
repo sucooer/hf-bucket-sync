@@ -157,6 +157,20 @@
               </div>
             </div>
 
+            <div class="space-y-3">
+              <div class="flex items-center gap-2 flex-wrap">
+                <button @click="previewFilter = 'all'" :class="previewFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'" class="px-2.5 py-1 rounded-lg text-[10px] font-black">全部</button>
+                <button @click="previewFilter = 'added'" :class="previewFilter === 'added' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600'" class="px-2.5 py-1 rounded-lg text-[10px] font-black">仅新增 ({{ previewCounts.added }})</button>
+                <button @click="previewFilter = 'deleted'" :class="previewFilter === 'deleted' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-600'" class="px-2.5 py-1 rounded-lg text-[10px] font-black">仅删除 ({{ previewCounts.deleted }})</button>
+                <button @click="previewFilter = 'changed'" :class="previewFilter === 'changed' ? 'bg-emerald-600 text-white' : 'bg-emerald-50 text-emerald-600'" class="px-2.5 py-1 rounded-lg text-[10px] font-black">仅变更 ({{ previewCounts.changed }})</button>
+              </div>
+              <div class="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                <div v-for="f in filteredPreviewItems.slice(0, 20)" :key="`${f.kind}:${f.path}`" class="p-3 bg-white/50 rounded-xl border border-slate-100 text-[11px] font-mono text-slate-600 truncate hover:bg-white transition-colors">
+                  <span class="mr-1 text-[10px] font-black" :class="f.kind === 'deleted' ? 'text-rose-500' : (f.kind === 'changed' ? 'text-emerald-600' : 'text-blue-600')">[{{ f.kind === 'deleted' ? '删' : (f.kind === 'changed' ? '变' : '新') }}]</span>{{ f.path }}
+                </div>
+              </div>
+            </div>
+
             <div v-if="plan.deletes?.length > 0" class="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex gap-4">
               <ExclamationTriangleIcon class="w-6 h-6 text-rose-500 shrink-0" />
               <div>
@@ -279,6 +293,7 @@ const planReady = ref(false)
 const running = ref(false)
 const loading = ref(false)
 const recentHistoryCollapsed = ref(false)
+const previewFilter = ref('all')
 
 const isValid = computed(() => {
   return form.value.localPath && form.value.bucketId
@@ -291,6 +306,23 @@ const directionOptions = [
 
 const bucketOptions = computed(() => {
   return buckets.value.map(b => ({ label: b.id, value: b.id }))
+})
+
+const previewCounts = computed(() => ({
+  added: plan.value.uploads?.length || 0,
+  deleted: plan.value.deletes?.length || 0,
+  changed: (plan.value.uploads?.length || 0) + (plan.value.downloads?.length || 0)
+}))
+
+const filteredPreviewItems = computed(() => {
+  const uploads = (plan.value.uploads || []).map(i => ({ ...i, kind: 'added' }))
+  const deletes = (plan.value.deletes || []).map(i => ({ ...i, kind: 'deleted' }))
+  const changed = [...uploads, ...(plan.value.downloads || []).map(i => ({ ...i, kind: 'changed' }))]
+  const all = [...uploads, ...deletes]
+  if (previewFilter.value === 'added') return uploads
+  if (previewFilter.value === 'deleted') return deletes
+  if (previewFilter.value === 'changed') return changed
+  return all
 })
 
 function parsePatterns(str) {
@@ -372,7 +404,7 @@ async function execute() {
       delete: form.value.delete
     }
     const res = await syncApi.execute(data)
-    alert(res.data?.message || '同步完成')
+    alert(res.data?.message || '任务已提交')
     await loadHistory()
     planReady.value = false
   } catch (e) {

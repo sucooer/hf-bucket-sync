@@ -102,7 +102,7 @@
               class="relative p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300"
             >
               <BellIcon class="w-6 h-6" />
-              <span v-if="notifications.length" class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+              <span v-if="notifications.length > 0" class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
             </button>
 
             <transition name="fade">
@@ -173,11 +173,7 @@ const route = useRoute()
 const sidebarOpen = ref(false)
 const notifOpen = ref(false)
 const windowWidth = ref(window.innerWidth)
-const notifications = ref([
-  { id: 1, type: 'success', title: '同步任务完成', message: 'anyaer007/nixeu 同步成功，上传 12 个文件', time: '2分钟前' },
-  { id: 2, type: 'error', title: '同步任务失败', message: 'anyaer007/wolf 连接超时', time: '15分钟前' },
-  { id: 3, type: 'success', title: '定时任务执行', message: '每日备份任务已执行完成', time: '2小时前' }
-])
+const notifications = ref([])
 
 const isMobile = computed(() => windowWidth.value < 1024)
 

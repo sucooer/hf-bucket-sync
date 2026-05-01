@@ -8,20 +8,20 @@
     </div>
 
     <!-- Filters Card -->
-    <div class="card glass !bg-slate-900 !border-slate-800 shadow-2xl shadow-blue-900/20 animate-fade-up delay-1 overflow-visible">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 items-end">
-        <div class="space-y-0">
+	    <div class="card glass !bg-slate-900 !border-slate-800 shadow-2xl shadow-blue-900/20 animate-fade-up delay-1 overflow-visible">
+	      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
+	        <div class="space-y-0 lg:col-span-3">
           <UISelect
             v-model="selectedBucket"
             :options="bucketOptions"
             label="选择 Bucket"
             placeholder="请选择 Bucket"
             dark
-            @update:modelValue="loadBucketTree()"
+            @update:modelValue="onBucketChange"
           />
         </div>
 
-        <div class="space-y-3 lg:col-span-2">
+	        <div class="space-y-3 lg:col-span-5">
           <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">路径前缀</label>
           <div class="relative group">
             <input
@@ -35,8 +35,15 @@
           </div>
         </div>
 
-        <div class="flex items-center gap-6">
-          <label class="flex items-center gap-4 cursor-pointer group shrink-0">
+	        <div class="flex items-center justify-end gap-3 lg:col-span-4">
+	          <button
+	            @click="navigateUp()"
+	            class="btn-secondary !py-3 whitespace-nowrap h-[46px]"
+	            :disabled="!prefix"
+	          >
+	            上一级
+	          </button>
+	          <label class="flex items-center gap-4 cursor-pointer group shrink-0">
             <div class="relative flex items-center justify-center">
               <input v-model="recursive" type="checkbox" class="peer sr-only" @change="loadBucketTree()" />
               <div class="w-12 h-7 bg-slate-800 rounded-full border border-slate-700 peer-checked:bg-blue-600 peer-checked:border-blue-500 transition-all duration-300"></div>
@@ -44,17 +51,17 @@
             </div>
             <span class="text-xs font-bold text-slate-400 group-hover:text-white transition-colors">递归显示</span>
           </label>
-          <button @click="loadBucketTree()" class="btn-primary w-full !py-3 shadow-blue-900/40 active:scale-95">
-            浏览
-          </button>
-        </div>
-      </div>
-    </div>
+	          <button @click="loadBucketTree()" class="btn-primary !py-3 h-[46px] px-6 shadow-blue-900/40 active:scale-95 shrink-0">
+	            浏览
+	          </button>
+	        </div>
+	      </div>
+	    </div>
 
     <!-- Table Card -->
     <div class="card !p-0 overflow-hidden animate-fade-up delay-2">
-      <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
-        <div class="flex items-center gap-4">
+	      <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
+	        <div class="flex items-center gap-4">
           <div class="w-12 h-12 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-blue-600 shadow-sm">
             <FolderOpenIcon class="w-6 h-6" />
           </div>
@@ -62,14 +69,27 @@
             <h3 class="text-xl font-black text-slate-900 tracking-tight leading-none">
               {{ selectedBucket || '请选择 Bucket' }}
             </h3>
-            <div class="flex items-center gap-2 mt-1.5">
-              <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-              <p class="text-xs font-bold text-slate-400 font-mono tracking-tight truncate max-md">
-                /{{ prefix || '根目录' }}
-              </p>
-            </div>
-          </div>
-        </div>
+	            <div class="flex items-center gap-2 mt-1.5">
+	              <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+	              <p class="text-xs font-bold text-slate-400 font-mono tracking-tight truncate max-md">
+	                /{{ prefix || '根目录' }}
+	              </p>
+	            </div>
+              <div class="flex items-center gap-1 mt-2 text-[11px] font-mono text-slate-500 overflow-x-auto">
+                <button type="button" class="hover:text-blue-600 whitespace-nowrap" @click.stop="jumpToPrefix('')">根</button>
+                <template v-for="(segment, index) in prefixSegments" :key="segment.path">
+                  <span class="text-slate-300">/</span>
+                  <button
+                    type="button"
+                    class="hover:text-blue-600 whitespace-nowrap"
+                    @click.stop="jumpToPrefix(segment.path)"
+                  >
+                    {{ segment.name }}
+                  </button>
+                </template>
+              </div>
+	          </div>
+	        </div>
         <div class="flex items-center gap-3">
           <div class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100">
             {{ files.length }} 个项目
@@ -99,15 +119,15 @@
         </div>
 
         <div v-else class="overflow-x-auto">
-          <table class="w-full">
+          <table class="w-full table-fixed">
             <thead>
               <tr class="bg-slate-50/50 text-left border-b border-slate-100">
-                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">名称</th>
-                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">类型</th>
-                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">大小</th>
-                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">直链</th>
-                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">CDN</th>
-                <th class="px-8 py-5 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">操作</th>
+                <th class="px-4 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 w-[28%]">名称</th>
+                <th class="px-4 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 w-[10%]">类型</th>
+                <th class="px-4 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 w-[10%]">大小</th>
+                <th class="hidden md:table-cell px-4 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 w-[20%]">直链</th>
+                <th class="hidden md:table-cell px-4 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 w-[20%]">CDN</th>
+                <th class="px-4 py-4 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 w-[12%] whitespace-nowrap">操作</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100/50">
@@ -119,7 +139,7 @@
                 :class="{ 'cursor-pointer': file.type === 'directory' }"
                 @click="file.type === 'directory' && navigateToFolder(file.path)"
               >
-                <td class="px-8 py-5">
+                <td class="hidden md:table-cell px-4 py-4">
                   <div class="flex items-center gap-5 min-w-0">
                     <div :class="file.type === 'directory' ? 'bg-amber-50 text-amber-500' : 'bg-blue-50 text-blue-500'" class="w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-sm group-hover:shadow-md">
                       <FolderIcon v-if="file.type === 'directory'" class="w-6 h-6" />
@@ -131,44 +151,49 @@
                     </div>
                   </div>
                 </td>
-                <td class="px-8 py-5">
+                <td class="hidden md:table-cell px-4 py-4">
                   <span :class="file.type === 'directory' ? 'badge-warning' : 'badge-info'" class="badge !px-3 shadow-sm">
                     {{ file.type === 'directory' ? '目录' : '文件' }}
                   </span>
                 </td>
-                <td class="px-8 py-5">
-                  <span class="text-sm font-bold text-slate-600">
+                <td class="px-4 py-4">
+                  <span class="hidden md:inline text-sm font-bold text-slate-600">
                     {{ file.type === 'directory' ? '--' : formatSize(file.size) }}
                   </span>
+                  <span class="md:hidden text-sm font-bold text-slate-600">
+                    {{ file.type === 'directory' ? '--' : formatSizeCompact(file.size) }}
+                  </span>
                 </td>
-                <td class="px-8 py-5">
+                <td class="px-4 py-4">
                   <template v-if="file.type === 'file'">
                     <div class="flex flex-col gap-1">
-                      <span class="text-[9px] text-slate-400 font-mono truncate max-w-[200px]">{{ getDirectLink(file.path) }}</span>
+                      <span class="hidden lg:block text-[9px] text-slate-400 font-mono truncate max-w-[180px]">{{ getDirectLink(file.path) }}</span>
                       <button
                         @click="copyLink(getDirectLink(file.path))"
                         class="text-[10px] px-2 py-1 bg-slate-100 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors w-fit"
+                        :title="`复制直链: ${getFileName(file.path)}`"
                       >
                         复制
                       </button>
                     </div>
                   </template>
                 </td>
-                <td class="px-8 py-5">
+                <td class="px-4 py-4">
                   <template v-if="file.type === 'file'">
                     <div class="flex flex-col gap-1">
-                      <span class="text-[9px] text-slate-400 font-mono truncate max-w-[200px]">{{ getCdnLink(file.path) }}</span>
+                      <span class="hidden lg:block text-[9px] text-slate-400 font-mono truncate max-w-[180px]">{{ getCdnLink(file.path) }}</span>
                       <button
                         @click="copyLink(getCdnLink(file.path))"
                         class="text-[10px] px-2 py-1 bg-slate-100 hover:bg-green-100 text-green-600 rounded-lg transition-colors w-fit"
+                        :title="`复制 CDN: ${getFileName(file.path)}`"
                       >
                         复制
                       </button>
                     </div>
                   </template>
                 </td>
-                <td class="px-8 py-5">
-                  <div class="flex items-center justify-end gap-2">
+                <td class="px-4 py-4">
+                  <div class="flex items-center justify-end gap-1.5 whitespace-nowrap">
                     <button
                       v-if="file.type === 'file'"
                       @click="openRenameModal(file)"
@@ -248,7 +273,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { bucketsApi } from '@/api'
 import UISelect from '@/components/UISelect.vue'
 import {
@@ -279,11 +304,22 @@ const fileToDelete = ref(null)
 const newFileName = ref('')
 const toastShow = ref(false)
 const toastMessage = ref('')
+const currentBucket = ref('')
 
 const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || 'https://hug.520717.xyz'
 
 const bucketOptions = computed(() => {
   return buckets.value.map(b => ({ label: b.id.split('/')[1] || b.id, value: b.id }))
+})
+
+const prefixSegments = computed(() => {
+  const current = normalizePrefix(prefix.value)
+  if (!current) return []
+  const parts = current.split('/').filter(Boolean)
+  return parts.map((name, index) => ({
+    name,
+    path: parts.slice(0, index + 1).join('/')
+  }))
 })
 
 function getFileName(path) {
@@ -300,6 +336,11 @@ function formatSize(bytes) {
     i++
   }
   return `${bytes.toFixed(1)} ${units[i]}`
+}
+
+function formatSizeCompact(bytes) {
+  const full = formatSize(bytes)
+  return full.replace(' KB', 'K').replace(' MB', 'M').replace(' GB', 'G').replace(' TB', 'T')
 }
 
 function normalizeBucketPath(path) {
@@ -398,12 +439,21 @@ async function loadBuckets() {
 async function loadBucketTree() {
   if (!selectedBucket.value) return
 
+  if (currentBucket.value && currentBucket.value !== selectedBucket.value) {
+    prefix.value = ''
+  }
+  currentBucket.value = selectedBucket.value
+
   loading.value = true
   error.value = ''
   files.value = []
 
   try {
-    const res = await bucketsApi.tree(selectedBucket.value, prefix.value, recursive.value)
+    const normalizedPrefix = normalizePrefix(prefix.value)
+    if (normalizedPrefix !== prefix.value) {
+      prefix.value = normalizedPrefix
+    }
+    const res = await bucketsApi.tree(selectedBucket.value, normalizedPrefix, recursive.value)
     files.value = res.data || []
   } catch (e) {
     error.value = e.response?.data?.detail || '加载失败'
@@ -413,10 +463,48 @@ async function loadBucketTree() {
   }
 }
 
+function normalizePrefix(rawPrefix) {
+  const bucketName = selectedBucket.value.split('/')[1] || selectedBucket.value
+  const bucketPrefix = `${bucketName}/`
+  let normalized = (rawPrefix || '').trim().replace(/^\/+/, '')
+  if (normalized.startsWith(bucketPrefix)) {
+    normalized = normalized.slice(bucketPrefix.length)
+  }
+  normalized = normalized.replace(/\/{2,}/g, '/')
+  normalized = normalized.replace(/\/+$/, '')
+  return normalized
+}
+
 function navigateToFolder(folderPath) {
-  prefix.value = folderPath + '/'
+  prefix.value = normalizePrefix(folderPath)
   loadBucketTree()
 }
+
+function navigateUp() {
+  const current = normalizePrefix(prefix.value)
+  if (!current) return
+  const segments = current.split('/').filter(Boolean)
+  segments.pop()
+  prefix.value = segments.join('/')
+  loadBucketTree()
+}
+
+function jumpToPrefix(targetPrefix) {
+  prefix.value = normalizePrefix(targetPrefix)
+  loadBucketTree()
+}
+
+function onBucketChange() {
+  prefix.value = ''
+  files.value = []
+  loadBucketTree()
+}
+
+watch(selectedBucket, (newBucket, oldBucket) => {
+  if (!newBucket || newBucket === oldBucket) return
+  prefix.value = ''
+  files.value = []
+})
 
 onMounted(() => {
   loadBuckets()

@@ -1,7 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
 from ...models.schemas import NotificationSettings
-from ...models.database import get_notification_settings, save_notification_settings
+from ...models.database import get_notification_settings, save_notification_settings, add_audit_log
 from ...services.notification import notification_service
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
@@ -13,8 +13,23 @@ async def get_settings() -> NotificationSettings:
 
 
 @router.post("/settings")
-async def update_settings(settings: NotificationSettings) -> NotificationSettings:
+async def update_settings(settings: NotificationSettings, request: Request) -> NotificationSettings:
     save_notification_settings(settings)
+    actor = getattr(request.state, "user", "web_user")
+    ip = request.client.host if request.client else ""
+    add_audit_log(
+        actor,
+        "config_update",
+        "notification_settings",
+        "更新通知配置",
+        {
+            "telegram_enabled": settings.telegram.enabled,
+            "serverchan_enabled": settings.serverchan.enabled,
+            "notify_on_success": settings.notify_on_success,
+            "notify_on_failure": settings.notify_on_failure
+        },
+        ip
+    )
 
     notification_service.unregister("telegram")
     notification_service.unregister("serverchan")

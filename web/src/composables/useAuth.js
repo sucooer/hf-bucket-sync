@@ -16,6 +16,17 @@ export function setAuthToken(token) {
   refreshAuthExpiry()
 }
 
+export function setAuthExpiry(expiresAt) {
+  let value = Number(expiresAt)
+  if (!Number.isFinite(value) || value <= 0) {
+    const parsed = new Date(expiresAt).getTime()
+    value = Number(parsed)
+  }
+  if (!Number.isFinite(value) || value <= 0) return false
+  localStorage.setItem(AUTH_EXPIRES_AT_KEY, String(value))
+  return true
+}
+
 export function getAuthToken() {
   return localStorage.getItem(AUTH_TOKEN_KEY) || ''
 }
@@ -48,4 +59,3 @@ export function logout() {
     window.location.href = '/login'
   }
 }
-

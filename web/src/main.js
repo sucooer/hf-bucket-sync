@@ -11,6 +11,7 @@ import Schedule from './views/Schedule.vue'
 import NotificationSettings from './views/NotificationSettings.vue'
 import Login from './views/Login.vue'
 import ThemeSettings from './views/ThemeSettings.vue'
+import AuditLogs from './views/AuditLogs.vue'
 
 const SITE_TITLE = import.meta.env.VITE_SITE_TITLE || 'HF Bucket Sync'
 document.title = SITE_TITLE
@@ -23,6 +24,7 @@ const routes = [
   { path: '/schedule', name: 'Schedule', component: Schedule },
   { path: '/notifications', name: 'NotificationSettings', component: NotificationSettings },
   { path: '/theme', name: 'ThemeSettings', component: ThemeSettings },
+  { path: '/audit', name: 'AuditLogs', component: AuditLogs },
 ]
 
 const router = createRouter({

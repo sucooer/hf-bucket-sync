@@ -31,7 +31,8 @@ api.interceptors.response.use(
 
 export const authApi = {
   login: (password) => api.post('/auth/login', null, { params: { password } }),
-  check: () => api.get('/auth/check')
+  check: () => api.get('/auth/check'),
+  logout: () => api.post('/auth/logout')
 }
 
 export const filesApi = {
@@ -87,6 +88,10 @@ export const scheduleApi = {
   update: (id, data) => api.put(`/schedules/${id}`, data),
 
   delete: (id) => api.delete(`/schedules/${id}`)
+}
+
+export const auditApi = {
+  logs: (limit = 100) => api.get('/audit/logs', { params: { limit } })
 }
 
 export default api

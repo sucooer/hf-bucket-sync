@@ -6,13 +6,14 @@ from pathlib import Path
 import re
 import os
 
-from .api.routes import files, buckets, sync, schedule, notifications, auth
+from .api.routes import files, buckets, sync, schedule, notifications, auth, audit
 from .api.routes.schedule import start_scheduler, stop_scheduler
 from .models.database import get_notification_settings
 from .services.notification import register_notification_channels
+from .services.auth_token import verify_token
+from .services.sync_queue import start_sync_workers, stop_sync_workers
 
 WEB_PASSWORD = os.environ.get("WEB_PASSWORD", "hf123456")
-AUTH_TOKEN = "hf-bucket-sync-auth"
 
 app = FastAPI(
     title="HF Bucket Sync",
@@ -34,13 +35,18 @@ app.include_router(sync.router)
 app.include_router(schedule.router)
 app.include_router(notifications.router)
 app.include_router(auth.router)
+app.include_router(audit.router)
 
 
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     path = request.url.path
     if path.startswith("/api/") and path not in ("/api/auth/login", "/api/health"):
-        if request.headers.get("x-auth-token", "") != AUTH_TOKEN:
+        token = request.headers.get("x-auth-token", "")
+        try:
+            payload = verify_token(token)
+            request.state.user = payload.get("sub", "web_user")
+        except Exception:
             return JSONResponse({"detail": "未认证"}, status_code=401)
     return await call_next(request)
 
@@ -60,11 +66,13 @@ async def startup_event():
         }
     })
     start_scheduler()
+    start_sync_workers()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     stop_scheduler()
+    stop_sync_workers()
 
 
 @app.get("/api/health")

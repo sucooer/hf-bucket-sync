@@ -28,7 +28,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { authApi } from '@/api'
-import { setAuthToken } from '@/composables/useAuth'
+import { setAuthToken, setAuthExpiry, refreshAuthExpiry } from '@/composables/useAuth'
 
 const router = useRouter()
 const password = ref('')
@@ -62,7 +62,16 @@ async function handleLogin() {
   error.value = ''
   try {
     const res = await authApi.login(password.value.trim())
+    if (!res?.data?.token) {
+      throw new Error('登录响应缺少 token')
+    }
     setAuthToken(res.data.token)
+    refreshAuthExpiry()
+    if (res.data.expires_at_epoch) {
+      setAuthExpiry(Number(res.data.expires_at_epoch) * 1000)
+    } else if (res.data.expires_at) {
+      setAuthExpiry(res.data.expires_at)
+    }
     router.replace('/')
   } catch (e) {
     error.value = e?.response?.data?.detail || '登录失败'

@@ -123,15 +123,20 @@
           ></textarea>
         </div>
 
-        <div class="flex gap-3">
+        <div class="flex gap-3 flex-wrap">
           <button @click="saveSettings" class="btn-primary">保存模板</button>
           <button @click="testTemplates" class="btn-secondary">预览模板</button>
+          <button v-if="previewText" @click="copyRenderedPreview" class="btn-secondary">复制渲染结果</button>
         </div>
       </div>
 
       <div v-if="previewText" class="mt-4 p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
-        <h4 class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">模板预览:</h4>
-        <div class="text-xs text-slate-700 dark:text-slate-300 space-y-2 leading-relaxed" v-html="previewHtml"></div>
+        <div class="flex items-center gap-2 mb-2">
+          <h4 class="text-sm font-medium text-slate-700 dark:text-slate-300">模板预览:</h4>
+          <button @click="previewMode = 'success'" :class="previewMode === 'success' ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-700'" class="px-2 py-0.5 rounded text-xs">成功</button>
+          <button @click="previewMode = 'failure'" :class="previewMode === 'failure' ? 'bg-rose-600 text-white' : 'bg-rose-100 text-rose-700'" class="px-2 py-0.5 rounded text-xs">失败</button>
+        </div>
+        <div ref="previewContainer" class="text-xs text-slate-700 dark:text-slate-300 space-y-2 leading-relaxed" v-html="previewHtml"></div>
       </div>
     </div>
 
@@ -163,6 +168,8 @@ const settings = ref({
 
 const testResult = ref(null)
 const previewText = ref('')
+const previewMode = ref('success')
+const previewContainer = ref(null)
 const previewHtml = computed(() => renderMarkdownSafe(previewText.value))
 
 const defaultSuccessTemplate = `## ✅ 同步任务完成
@@ -244,7 +251,9 @@ function resetTemplates() {
 function testTemplates() {
   const now = new Date().toLocaleString('zh-CN')
 
-  let text = settings.value.template_success || defaultSuccessTemplate
+  let text = previewMode.value === 'failure'
+    ? (settings.value.template_failure || defaultFailureTemplate)
+    : (settings.value.template_success || defaultSuccessTemplate)
   text = text.replace(/{task_name}/g, '测试任务')
   text = text.replace(/{datetime}/g, now)
   text = text.replace(/{uploads}/g, '3')
@@ -253,9 +262,19 @@ function testTemplates() {
   text = text.replace(/{skips}/g, '0')
   text = text.replace(/{total}/g, '6')
   text = text.replace(/{message}/g, '测试消息内容')
-  text = text.replace(/{status}/g, '✅ 成功')
+  text = text.replace(/{status}/g, previewMode.value === 'failure' ? '❌ 失败' : '✅ 成功')
 
   previewText.value = text
+}
+
+async function copyRenderedPreview() {
+  const text = previewContainer.value?.innerText || previewText.value
+  try {
+    await navigator.clipboard.writeText(text)
+    testResult.value = { success: true, message: '已复制渲染结果' }
+  } catch (e) {
+    testResult.value = { success: false, error: '复制失败' }
+  }
 }
 
 function escapeHtml(text) {

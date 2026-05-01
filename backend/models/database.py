@@ -72,6 +72,19 @@ def init_db():
         )
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            actor TEXT NOT NULL,
+            action TEXT NOT NULL,
+            resource TEXT DEFAULT '',
+            summary TEXT DEFAULT '',
+            payload_json TEXT DEFAULT '',
+            ip TEXT DEFAULT '',
+            created_at TEXT NOT NULL
+        )
+    """)
+
     cursor.execute("SELECT COUNT(*) FROM notification_settings")
     if cursor.fetchone()[0] == 0:
         cursor.execute("""
@@ -131,7 +144,7 @@ def get_sync_tasks(limit: int = 50) -> list[SyncTask]:
             message=row["message"],
             created_at=datetime.fromisoformat(row["created_at"]),
             completed_at=datetime.fromisoformat(row["completed_at"]) if row["completed_at"] else None,
-            stats=eval(row["stats_json"]) if row["stats_json"] else None
+            stats=json.loads(row["stats_json"]) if row["stats_json"] else None
         ))
     conn.close()
     return tasks
@@ -305,6 +318,35 @@ def save_notification_settings(settings: NotificationSettings):
     ))
     conn.commit()
     conn.close()
+
+
+def add_audit_log(actor: str, action: str, resource: str = "", summary: str = "",
+                  payload: Optional[dict] = None, ip: str = ""):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO audit_logs (actor, action, resource, summary, payload_json, ip, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        actor or "anonymous",
+        action,
+        resource,
+        summary,
+        json.dumps(payload or {}, ensure_ascii=False),
+        ip or "",
+        datetime.now().isoformat()
+    ))
+    conn.commit()
+    conn.close()
+
+
+def get_audit_logs(limit: int = 100):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT ?", (limit,))
+    rows = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    return rows
 
 
 init_db()

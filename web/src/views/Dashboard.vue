@@ -1,5 +1,5 @@
 <template>
-  <div class="p-10 space-y-10 max-w-[1600px] mx-auto overflow-hidden">
+  <div class="p-4 md:p-6 lg:p-10 space-y-6 md:space-y-10 max-w-[1600px] mx-auto overflow-hidden">
     <!-- Header Section -->
     <div class="flex items-end justify-between animate-fade-up">
       <div>

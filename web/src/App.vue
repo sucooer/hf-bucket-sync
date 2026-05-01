@@ -1,7 +1,33 @@
 <template>
   <div class="flex h-screen bg-slate-50/50 selection:bg-blue-100 selection:text-blue-700">
+    <!-- Mobile Menu Button -->
+    <button
+      v-if="isMobile"
+      @click="sidebarOpen = !sidebarOpen"
+      class="fixed top-5 left-4 z-50 p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300"
+    >
+      <Bars3Icon v-if="!sidebarOpen" class="w-6 h-6" />
+      <XMarkIcon v-else class="w-6 h-6" />
+    </button>
+
+    <!-- Mobile Overlay -->
+    <transition name="fade">
+      <div
+        v-if="isMobile && sidebarOpen"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-30"
+        @click="sidebarOpen = false"
+      ></div>
+    </transition>
+
     <!-- Sidebar -->
-    <aside class="w-64 bg-slate-900 text-white flex flex-col z-30 transition-all duration-500 relative">
+    <aside
+      class="w-64 bg-slate-900 text-white flex flex-col transition-all duration-500 shrink-0"
+      :class="{
+        'fixed inset-y-0 left-0 z-40 translate-x-0': sidebarOpen && isMobile,
+        'fixed inset-y-0 left-0 z-40 -translate-x-full lg:translate-x-0 lg:z-30': !sidebarOpen && isMobile,
+        'hidden lg:flex': isMobile && !sidebarOpen
+      }"
+    >
       <!-- Sidebar Pattern Overlay -->
       <div class="absolute inset-0 opacity-[0.03] pointer-events-none overflow-hidden">
         <div class="absolute -top-24 -left-24 w-64 h-64 bg-blue-500 rounded-full blur-[100px]"></div>
@@ -37,6 +63,10 @@
           <ClockIcon class="w-5 h-5 group-hover:scale-110 transition-transform" />
           定时任务
         </router-link>
+        <router-link to="/notifications" class="sidebar-link group" :class="{ active: $route.path === '/notifications' }">
+          <BellIcon class="w-5 h-5 group-hover:scale-110 transition-transform" />
+          通知设置
+        </router-link>
       </nav>
 
       <div class="p-8 mt-auto relative">
@@ -55,25 +85,28 @@
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-50/50 via-slate-50 to-slate-50">
-      <header class="h-20 glass sticky top-0 z-20 flex items-center justify-between px-10 border-b border-slate-200/50">
-        <div class="flex items-center gap-4">
+      <header class="h-20 glass sticky top-0 z-20 flex items-center justify-between px-4 md:px-10 border-b border-slate-200/50">
+        <div class="flex items-center gap-4 pl-10 lg:pl-0">
           <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-full border border-slate-200">
             <div class="w-2 h-2 rounded-full bg-blue-500"></div>
             <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Hugging Face Cluster</span>
           </div>
-          <span class="text-slate-300">/</span>
+          <span class="hidden md:inline text-slate-300">/</span>
           <h2 class="text-slate-900 font-bold tracking-tight">{{ currentRouteName }}</h2>
         </div>
         
-        <div class="flex items-center gap-6">
-          <button class="relative p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 group">
+        <div class="flex items-center gap-4 md:gap-6">
+          <router-link
+            to="/notifications"
+            class="relative p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 group"
+          >
             <BellIcon class="w-6 h-6" />
             <span class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white group-hover:scale-125 transition-transform"></span>
-          </button>
+          </router-link>
           
-          <div class="h-10 w-[1px] bg-slate-200"></div>
+          <div class="h-8 md:h-10 w-[1px] bg-slate-200 hidden sm:block"></div>
           
-          <div class="flex items-center gap-3 pl-2 group cursor-pointer">
+          <div class="hidden sm:flex items-center gap-3 pl-2 group cursor-pointer">
             <div class="text-right">
               <p class="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors leading-none">Admin User</p>
               <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mt-1">Superuser</p>
@@ -97,7 +130,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   ChartBarIcon,
@@ -105,17 +138,41 @@ import {
   ArrowsRightLeftIcon,
   ClockIcon,
   BellIcon,
-  MagnifyingGlassIcon
+  Bars3Icon,
+  XMarkIcon
 } from '@heroicons/vue/24/outline'
 
 const route = useRoute()
+const sidebarOpen = ref(false)
+const windowWidth = ref(window.innerWidth)
+
+const isMobile = computed(() => windowWidth.value < 1024)
+
+const handleResize = () => {
+  windowWidth.value = window.innerWidth
+  if (!isMobile.value) {
+    sidebarOpen.value = false
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+  handleResize()
+})
+
+watch(() => route.path, () => {
+  if (isMobile.value) {
+    sidebarOpen.value = false
+  }
+})
 
 const currentRouteName = computed(() => {
   const map = {
     '/': 'System Overview',
     '/files': 'File Explorer',
     '/sync': 'Transfer Hub',
-    '/schedule': 'Automation Engine'
+    '/schedule': 'Automation Engine',
+    '/notifications': 'Notification Settings'
   }
   return map[route.path] || 'Dashboard'
 })

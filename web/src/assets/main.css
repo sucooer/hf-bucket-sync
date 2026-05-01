@@ -81,6 +81,17 @@
   transform: translateX(-20px);
 }
 
+/* Fade Transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 /* Stagger Animations */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }

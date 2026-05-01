@@ -1,5 +1,5 @@
 <template>
-  <div class="p-10 space-y-10 max-w-[1600px] mx-auto overflow-hidden">
+  <div class="p-4 md:p-6 lg:p-10 space-y-6 md:space-y-10 max-w-[1600px] mx-auto overflow-hidden">
     <div class="flex items-end justify-between animate-fade-up">
       <div>
         <h2 class="text-4xl font-black text-slate-900 tracking-tight">文件浏览</h2>
@@ -105,6 +105,8 @@
                 <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">名称</th>
                 <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">类型</th>
                 <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">大小</th>
+                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">直链</th>
+                <th class="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">CDN</th>
                 <th class="px-8 py-5 text-right text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">操作</th>
               </tr>
             </thead>
@@ -137,10 +139,49 @@
                     {{ file.type === 'directory' ? '--' : formatSize(file.size) }}
                   </span>
                 </td>
-                <td class="px-8 py-5 text-right">
-                  <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
-                    <button class="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-white rounded-xl shadow-sm border border-transparent hover:border-slate-200 transition-all">
-                      <ArrowDownTrayIcon class="w-5 h-5" />
+                <td class="px-8 py-5">
+                  <template v-if="file.type === 'file'">
+                    <div class="flex flex-col gap-1">
+                      <span class="text-[9px] text-slate-400 font-mono truncate max-w-[200px]">{{ getDirectLink(file.path) }}</span>
+                      <button
+                        @click="copyLink(getDirectLink(file.path))"
+                        class="text-[10px] px-2 py-1 bg-slate-100 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors w-fit"
+                      >
+                        复制
+                      </button>
+                    </div>
+                  </template>
+                </td>
+                <td class="px-8 py-5">
+                  <template v-if="file.type === 'file'">
+                    <div class="flex flex-col gap-1">
+                      <span class="text-[9px] text-slate-400 font-mono truncate max-w-[200px]">{{ getCdnLink(file.path) }}</span>
+                      <button
+                        @click="copyLink(getCdnLink(file.path))"
+                        class="text-[10px] px-2 py-1 bg-slate-100 hover:bg-green-100 text-green-600 rounded-lg transition-colors w-fit"
+                      >
+                        复制
+                      </button>
+                    </div>
+                  </template>
+                </td>
+                <td class="px-8 py-5">
+                  <div class="flex items-center justify-end gap-2">
+                    <button
+                      v-if="file.type === 'file'"
+                      @click="openRenameModal(file)"
+                      class="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-white rounded-xl shadow-sm border border-transparent hover:border-slate-200 transition-all"
+                      title="重命名"
+                    >
+                      <PencilIcon class="w-5 h-5" />
+                    </button>
+                    <button
+                      v-if="file.type === 'file'"
+                      @click="confirmDelete(file)"
+                      class="p-2.5 text-slate-400 hover:text-red-600 hover:bg-white rounded-xl shadow-sm border border-transparent hover:border-slate-200 transition-all"
+                      title="删除"
+                    >
+                      <TrashIcon class="w-5 h-5" />
                     </button>
                   </div>
                 </td>
@@ -150,6 +191,57 @@
         </div>
       </div>
     </div>
+
+    <!-- Toast notification -->
+    <Transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="transform translate-y-4 opacity-0"
+      enter-to-class="transform translate-y-0 opacity-100"
+      leave-active-class="transition duration-200 ease-in"
+      leave-from-class="transform translate-y-0 opacity-100"
+      leave-to-class="transform translate-y-4 opacity-0"
+    >
+      <div v-if="toastShow" class="fixed bottom-8 right-8 z-50 px-6 py-3 bg-slate-900 text-white rounded-xl shadow-2xl flex items-center gap-3">
+        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+        <span class="font-bold text-sm">{{ toastMessage }}</span>
+      </div>
+    </Transition>
+
+    <!-- Rename Modal -->
+    <Teleport to="body">
+      <div v-if="showRenameModal" class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showRenameModal = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 animate-fade-up">
+          <h3 class="text-xl font-black text-slate-900 mb-6">重命名文件</h3>
+          <input
+            v-model="newFileName"
+            type="text"
+            class="input !bg-slate-50 !border-slate-200 !text-slate-900 mb-6"
+            placeholder="输入新名称"
+            @keyup.enter="executeRename()"
+          />
+          <div class="flex gap-3">
+            <button @click="showRenameModal = false" class="btn-secondary flex-1">取消</button>
+            <button @click="executeRename()" class="btn-primary flex-1">确定</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Delete Confirmation Modal -->
+    <Teleport to="body">
+      <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="showDeleteModal = false"></div>
+        <div class="relative bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4 animate-fade-up">
+          <h3 class="text-xl font-black text-slate-900 mb-2">确认删除</h3>
+          <p class="text-slate-500 mb-6">确定要删除 <span class="font-bold text-slate-900">{{ fileToDelete?.name }}</span> 吗？此操作不可撤销。</p>
+          <div class="flex gap-3">
+            <button @click="showDeleteModal = false" class="btn-secondary flex-1">取消</button>
+            <button @click="executeDelete()" class="btn-primary flex-1 !bg-red-500 hover:!bg-red-600">删除</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -157,27 +249,39 @@
 import { ref, computed, onMounted } from 'vue'
 import { bucketsApi } from '@/api'
 import UISelect from '@/components/UISelect.vue'
-import { 
-  FolderIcon, 
+import {
+  FolderIcon,
   FolderOpenIcon,
-  DocumentIcon, 
-  MagnifyingGlassIcon, 
+  DocumentIcon,
+  MagnifyingGlassIcon,
   ChevronDownIcon,
   InboxIcon,
   CubeIcon,
-  ArrowDownTrayIcon
+  ArrowDownTrayIcon,
+  PencilIcon,
+  TrashIcon
 } from '@heroicons/vue/24/outline'
 
 const buckets = ref([])
 const selectedBucket = ref('')
 const prefix = ref('')
-const recursive = ref(true)
+const recursive = ref(false)
 const files = ref([])
 const loading = ref(false)
 const error = ref('')
 
+const showRenameModal = ref(false)
+const showDeleteModal = ref(false)
+const fileToRename = ref(null)
+const fileToDelete = ref(null)
+const newFileName = ref('')
+const toastShow = ref(false)
+const toastMessage = ref('')
+
+const CDN_BASE_URL = 'https://hug.520717.xyz'
+
 const bucketOptions = computed(() => {
-  return buckets.value.map(b => ({ label: b.id, value: b.id }))
+  return buckets.value.map(b => ({ label: b.id.split('/')[1] || b.id, value: b.id }))
 })
 
 function getFileName(path) {
@@ -194,6 +298,80 @@ function formatSize(bytes) {
     i++
   }
   return `${bytes.toFixed(1)} ${units[i]}`
+}
+
+function getDirectLink(path) {
+  const bucketName = selectedBucket.value.split('/')[1] || selectedBucket.value
+  const bucketPrefix = bucketName + '/'
+  const pathInBucket = path.startsWith(bucketPrefix) ? path.slice(bucketPrefix.length) : path
+  const encodedPath = pathInBucket.split('/').map(p => encodeURIComponent(p)).join('/')
+  return `https://huggingface.co/buckets/${selectedBucket.value}/resolve/${encodedPath}`
+}
+
+function getCdnLink(path) {
+  return `${CDN_BASE_URL}/${path}`
+}
+
+function copyLink(url) {
+  const textArea = document.createElement('textarea')
+  textArea.value = url
+  textArea.style.position = 'fixed'
+  textArea.style.left = '-999999px'
+  textArea.style.top = '-999999px'
+  document.body.appendChild(textArea)
+  textArea.focus()
+  textArea.select()
+  try {
+    document.execCommand('copy')
+    showToast('链接已复制到剪贴板')
+  } catch (err) {
+    prompt('复制链接:', url)
+  }
+  document.body.removeChild(textArea)
+}
+
+function showToast(message) {
+  toastMessage.value = message
+  toastShow.value = true
+  setTimeout(() => { toastShow.value = false }, 2000)
+}
+
+function openRenameModal(file) {
+  fileToRename.value = file
+  newFileName.value = getFileName(file.path)
+  showRenameModal.value = true
+}
+
+async function executeRename() {
+  if (!newFileName.value.trim() || !fileToRename.value) return
+  try {
+    await bucketsApi.renameFile(selectedBucket.value, fileToRename.value.path, newFileName.value.trim())
+    showRenameModal.value = false
+    fileToRename.value = null
+    newFileName.value = ''
+    await loadBucketTree()
+    showToast('文件重命名成功')
+  } catch (e) {
+    alert(e.response?.data?.detail || '重命名失败')
+  }
+}
+
+function confirmDelete(file) {
+  fileToDelete.value = file
+  showDeleteModal.value = true
+}
+
+async function executeDelete() {
+  if (!fileToDelete.value) return
+  try {
+    await bucketsApi.deleteFile(selectedBucket.value, fileToDelete.value.path)
+    showDeleteModal.value = false
+    fileToDelete.value = null
+    await loadBucketTree()
+    showToast('文件删除成功')
+  } catch (e) {
+    alert(e.response?.data?.detail || '删除失败')
+  }
 }
 
 async function loadBuckets() {

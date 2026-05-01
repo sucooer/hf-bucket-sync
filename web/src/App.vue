@@ -96,6 +96,15 @@
         </div>
         
         <div class="flex items-center gap-4 md:gap-6">
+          <button
+            @click="toggleTheme"
+            class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300"
+            title="切换主题"
+          >
+            <SunIcon v-if="isDark" class="w-6 h-6" />
+            <MoonIcon v-else class="w-6 h-6" />
+          </button>
+
           <div class="relative">
             <button
               @click="notifOpen = !notifOpen"
@@ -166,14 +175,25 @@ import {
   Bars3Icon,
   XMarkIcon,
   CheckCircleIcon,
-  ExclamationCircleIcon
+  ExclamationCircleIcon,
+  SunIcon,
+  MoonIcon
 } from '@heroicons/vue/24/outline'
+import { themeMode, initTheme, cycleTheme } from '@/composables/useTheme'
 
 const route = useRoute()
 const sidebarOpen = ref(false)
 const notifOpen = ref(false)
-const windowWidth = ref(window.innerWidth)
 const notifications = ref([])
+const windowWidth = ref(window.innerWidth)
+
+const isDark = computed(() => {
+  if (themeMode.value === 'dark') return true
+  if (themeMode.value === 'light') return false
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+})
+
+const toggleTheme = cycleTheme
 
 const isMobile = computed(() => windowWidth.value < 1024)
 
@@ -185,6 +205,7 @@ const handleResize = () => {
 }
 
 onMounted(() => {
+  initTheme()
   window.addEventListener('resize', handleResize)
   handleResize()
 })

@@ -1,66 +1,44 @@
-import { ref, watch, onMounted } from 'vue'
-
-const theme = ref('system')
-const isDark = ref(false)
+import { ref, watch } from 'vue'
 
 const STORAGE_KEY = 'hf-bucket-sync-theme'
+const themeMode = ref(localStorage.getItem(STORAGE_KEY) || 'light')
 
-function getSystemTheme() {
+function getSystemDark() {
   return window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
-function updateDarkMode() {
-  const dark = theme.value === 'dark' || (theme.value === 'system' && getSystemTheme())
-  isDark.value = dark
-
-  if (dark) {
+function applyTheme() {
+  const isDark = themeMode.value === 'dark' || (themeMode.value === 'system' && getSystemDark())
+  if (isDark) {
     document.documentElement.classList.add('dark')
   } else {
     document.documentElement.classList.remove('dark')
   }
 }
 
-function setTheme(newTheme) {
-  theme.value = newTheme
-  localStorage.setItem(STORAGE_KEY, newTheme)
-  updateDarkMode()
+export function setThemeMode(mode) {
+  themeMode.value = mode
+  localStorage.setItem(STORAGE_KEY, mode)
+  applyTheme()
 }
 
-function toggleTheme() {
-  if (theme.value === 'light') {
-    setTheme('dark')
-  } else if (theme.value === 'dark') {
-    setTheme('system')
+export function cycleTheme() {
+  if (themeMode.value === 'light') {
+    setThemeMode('dark')
+  } else if (themeMode.value === 'dark') {
+    setThemeMode('system')
   } else {
-    setTheme('light')
+    setThemeMode('light')
   }
 }
 
-function initTheme() {
-  const saved = localStorage.getItem(STORAGE_KEY)
-  if (saved && ['light', 'dark', 'system'].includes(saved)) {
-    theme.value = saved
-  }
-  updateDarkMode()
-
+export function initTheme() {
+  applyTheme()
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if (theme.value === 'system') {
-      updateDarkMode()
+    if (themeMode.value === 'system') {
+      applyTheme()
     }
   })
 }
 
-export function useTheme() {
-  onMounted(() => {
-    initTheme()
-  })
-
-  return {
-    theme,
-    isDark,
-    setTheme,
-    toggleTheme
-  }
-}
-
-export default useTheme
+export { themeMode }

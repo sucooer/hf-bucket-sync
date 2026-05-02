@@ -87,6 +87,25 @@
   .sidebar-link {
     @apply flex items-center gap-3 px-4 py-3 text-slate-400 font-semibold rounded-xl hover:bg-white/5 hover:text-white transition-all duration-300 relative overflow-hidden;
   }
+  .sidebar-label {
+    transition: max-width 260ms ease, opacity 220ms ease, transform 260ms ease, margin 260ms ease;
+    white-space: nowrap;
+    display: inline-block;
+    transform-origin: left center;
+  }
+  .sidebar-label-show {
+    max-width: 120px;
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    margin-left: 0;
+  }
+  .sidebar-label-hide {
+    max-width: 0;
+    opacity: 0;
+    transform: translateX(-6px) scale(0.98);
+    margin-left: -2px;
+    pointer-events: none;
+  }
 
   .dark .sidebar-link {
     @apply text-slate-400 hover:text-white;

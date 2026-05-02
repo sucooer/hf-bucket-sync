@@ -12,7 +12,7 @@
 
     <!-- Sidebar Container -->
     <div
-      class="md:m-4 md:h-[calc(100vh-32px)] rounded-3xl border border-white/10 app-panel backdrop-blur-xl shadow-2xl overflow-hidden"
+      class="md:m-4 md:h-[calc(100vh-32px)] rounded-3xl border border-white/10 app-panel backdrop-blur-xl shadow-2xl overflow-hidden transition-[width,transform] duration-400 ease-out"
       :class="[
         isMobile ? (sidebarOpen ? 'w-[220px]' : 'w-[92px]') : (sidebarCollapsed ? 'w-[92px]' : 'w-[220px]'),
         {
@@ -38,31 +38,31 @@
       <nav class="flex-1 px-3 space-y-3 relative">
         <router-link to="/" class="sidebar-link !py-3" :class="[ $route.path === '/' ? 'active' : '', showSidebarLabels ? '!justify-start !px-4' : '!justify-center !px-0' ]" title="控制台">
           <ChartBarIcon class="w-5 h-5" />
-          <span v-if="showSidebarLabels" class="text-sm">控制台</span>
+          <span class="text-sm sidebar-label" :class="showSidebarLabels ? 'sidebar-label-show' : 'sidebar-label-hide'">控制台</span>
         </router-link>
         <router-link to="/files" class="sidebar-link !py-3" :class="[ $route.path === '/files' ? 'active' : '', showSidebarLabels ? '!justify-start !px-4' : '!justify-center !px-0' ]" title="文件浏览">
           <FolderIcon class="w-5 h-5" />
-          <span v-if="showSidebarLabels" class="text-sm">文件浏览</span>
+          <span class="text-sm sidebar-label" :class="showSidebarLabels ? 'sidebar-label-show' : 'sidebar-label-hide'">文件浏览</span>
         </router-link>
         <router-link to="/sync" class="sidebar-link !py-3" :class="[ $route.path === '/sync' ? 'active' : '', showSidebarLabels ? '!justify-start !px-4' : '!justify-center !px-0' ]" title="同步任务">
           <ArrowsRightLeftIcon class="w-5 h-5" />
-          <span v-if="showSidebarLabels" class="text-sm">同步任务</span>
+          <span class="text-sm sidebar-label" :class="showSidebarLabels ? 'sidebar-label-show' : 'sidebar-label-hide'">同步任务</span>
         </router-link>
         <router-link to="/schedule" class="sidebar-link !py-3" :class="[ $route.path === '/schedule' ? 'active' : '', showSidebarLabels ? '!justify-start !px-4' : '!justify-center !px-0' ]" title="定时任务">
           <ClockIcon class="w-5 h-5" />
-          <span v-if="showSidebarLabels" class="text-sm">定时任务</span>
+          <span class="text-sm sidebar-label" :class="showSidebarLabels ? 'sidebar-label-show' : 'sidebar-label-hide'">定时任务</span>
         </router-link>
         <router-link to="/notifications" class="sidebar-link !py-3" :class="[ $route.path === '/notifications' ? 'active' : '', showSidebarLabels ? '!justify-start !px-4' : '!justify-center !px-0' ]" title="通知设置">
           <BellIcon class="w-5 h-5" />
-          <span v-if="showSidebarLabels" class="text-sm">通知设置</span>
+          <span class="text-sm sidebar-label" :class="showSidebarLabels ? 'sidebar-label-show' : 'sidebar-label-hide'">通知设置</span>
         </router-link>
         <router-link to="/theme" class="sidebar-link !py-3" :class="[ $route.path === '/theme' ? 'active' : '', showSidebarLabels ? '!justify-start !px-4' : '!justify-center !px-0' ]" title="主题设置">
           <SwatchIcon class="w-5 h-5" />
-          <span v-if="showSidebarLabels" class="text-sm">主题设置</span>
+          <span class="text-sm sidebar-label" :class="showSidebarLabels ? 'sidebar-label-show' : 'sidebar-label-hide'">主题设置</span>
         </router-link>
         <router-link to="/audit" class="sidebar-link !py-3" :class="[ $route.path === '/audit' ? 'active' : '', showSidebarLabels ? '!justify-start !px-4' : '!justify-center !px-0' ]" title="审计日志">
           <DocumentTextIcon class="w-5 h-5" />
-          <span v-if="showSidebarLabels" class="text-sm">审计日志</span>
+          <span class="text-sm sidebar-label" :class="showSidebarLabels ? 'sidebar-label-show' : 'sidebar-label-hide'">审计日志</span>
         </router-link>
       </nav>
 

@@ -82,6 +82,9 @@
 	          </div>
 	        </div>
         <div class="flex items-center gap-3">
+          <div v-if="files.length" class="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-slate-200">
+            已选 {{ selectedPaths.length }}
+          </div>
           <div class="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100">
             {{ files.length }} 个项目
           </div>
@@ -113,6 +116,16 @@
           <table class="w-full table-fixed">
             <thead>
               <tr class="bg-slate-50/50 text-left border-b border-slate-100">
+                <th class="px-2 md:px-4 py-4 w-[5%]">
+                  <input
+                    type="checkbox"
+                    class="w-4 h-4 accent-blue-600"
+                    :checked="allSelected"
+                    :indeterminate.prop="someSelected"
+                    @change="toggleSelectAll($event.target.checked)"
+                    :disabled="files.length === 0"
+                  />
+                </th>
                 <th class="px-4 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 w-[28%]">名称</th>
                 <th class="px-4 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 w-[10%]">类型</th>
                 <th class="px-4 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 w-[10%]">大小</th>
@@ -130,6 +143,14 @@
                 :class="{ 'cursor-pointer': file.type === 'directory' }"
                 @click="file.type === 'directory' && navigateToFolder(file.path)"
               >
+                <td class="px-2 md:px-4 py-4" @click.stop>
+                  <input
+                    type="checkbox"
+                    class="w-4 h-4 accent-blue-600"
+                    :checked="selectedPaths.includes(file.path)"
+                    @change="toggleSelect(file.path, $event.target.checked)"
+                  />
+                </td>
                 <td class="px-4 py-4">
                   <div class="flex items-center gap-3 md:gap-5 min-w-0">
                     <div :class="file.type === 'directory' ? 'bg-amber-50 text-amber-500' : 'bg-blue-50 text-blue-500'" class="w-9 h-9 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 shadow-sm group-hover:shadow-md">
@@ -286,6 +307,7 @@ const selectedBucket = ref('')
 const prefix = ref('')
 const recursive = ref(false)
 const files = ref([])
+const selectedPaths = ref([])
 const loading = ref(false)
 const error = ref('')
 
@@ -314,6 +336,21 @@ const prefixSegments = computed(() => {
     path: parts.slice(0, index + 1).join('/')
   }))
 })
+
+const allSelected = computed(() => files.value.length > 0 && selectedPaths.value.length === files.value.length)
+const someSelected = computed(() => selectedPaths.value.length > 0 && selectedPaths.value.length < files.value.length)
+
+function toggleSelect(path, checked) {
+  if (checked) {
+    if (!selectedPaths.value.includes(path)) selectedPaths.value.push(path)
+    return
+  }
+  selectedPaths.value = selectedPaths.value.filter(p => p !== path)
+}
+
+function toggleSelectAll(checked) {
+  selectedPaths.value = checked ? files.value.map(f => f.path) : []
+}
 
 function getFileName(path) {
   const parts = path.split('/')
@@ -501,6 +538,7 @@ watch(selectedBucket, (newBucket, oldBucket) => {
   if (!newBucket || newBucket === oldBucket) return
   prefix.value = ''
   files.value = []
+  selectedPaths.value = []
 })
 
 watch(() => route.query.bucket, (newBucket) => {
@@ -510,6 +548,11 @@ watch(() => route.query.bucket, (newBucket) => {
   if (!exists) return
   selectedBucket.value = newBucket
   onBucketChange()
+})
+
+watch(files, (newFiles) => {
+  const validSet = new Set((newFiles || []).map(f => f.path))
+  selectedPaths.value = selectedPaths.value.filter(path => validSet.has(path))
 })
 
 onMounted(() => {

@@ -21,8 +21,12 @@ HuggingFace Bucket 同步工具 - 将本地文件同步到 HF Bucket 存储。
 
 ```bash
 export HF_TOKEN=your_hf_token_here
-export WEB_PASSWORD=your_password  # 可选，默认: hf123456
+export AUTH_TOKEN_SECRET=your_32+_char_secret_here
 ```
+
+`AUTH_TOKEN_SECRET` 说明：
+- 必填，长度至少 32 位。
+- 在 Docker Compose 的 `.env` 中，建议不要使用 `$`（或写成 `$$` 转义），避免被变量展开。
 
 ### 2. 启动服务
 
@@ -34,6 +38,11 @@ docker-compose up -d
 
 - **Web UI**: http://localhost:8000
 - **API 文档**: http://localhost:8000/api/docs
+- 首次启动时，容器日志会打印一次自动生成的 14 位登录密码。
+- 如果忘记密码，可执行重置命令：
+  `docker compose run --rm app python -m backend.tools.reset_password`
+- 重置命令需要在项目根目录（存在 `docker-compose.yml`）执行；或使用：
+  `docker compose -f <path-to-docker-compose.yml> run --rm app python -m backend.tools.reset_password`
 
 ## 项目结构
 
@@ -61,7 +70,7 @@ hf-bucket-sync/
 | 环境变量 | 说明 |
 |---------|------|
 | HF_TOKEN | HuggingFace Access Token（必需） |
-| WEB_PASSWORD | Web UI 密码（可选，默认: hf123456） |
+| AUTH_TOKEN_SECRET | Token 签名密钥（必需，至少 32 位） |
 | VITE_AUTH_TIMEOUT_MINUTES | 登录会话超时时间（分钟，可选，默认: 60） |
 | VITE_SITE_TITLE | 网站标题（浏览器标签页/登录页，默认: HF Bucket Sync） |
 | LOCAL_PATH | 本地文件浏览路径（可选） |

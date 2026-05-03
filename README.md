@@ -21,8 +21,12 @@ A web-based tool for synchronizing local files with HuggingFace Bucket storage.
 
 ```bash
 export HF_TOKEN=your_hf_token_here
-export WEB_PASSWORD=your_password  # Optional, default: hf123456
+export AUTH_TOKEN_SECRET=your_32+_char_secret_here
 ```
+
+`AUTH_TOKEN_SECRET` notes:
+- Required, minimum 32 characters.
+- In `.env` for Docker Compose, avoid `$` (or escape it as `$$`) to prevent variable interpolation.
 
 ### 2. Start Services
 
@@ -34,6 +38,11 @@ docker-compose up -d
 
 - **Web UI**: http://localhost:8000
 - **API Docs**: http://localhost:8000/api/docs
+- On first startup, the container logs print an auto-generated 14-character login password once.
+- If the password is lost, reset it with:
+  `docker compose run --rm app python -m backend.tools.reset_password`
+- Run the reset command from the project root (where `docker-compose.yml` is located), or use:
+  `docker compose -f <path-to-docker-compose.yml> run --rm app python -m backend.tools.reset_password`
 
 ## Project Structure
 
@@ -61,7 +70,7 @@ hf-bucket-sync/
 | Env Variable | Description |
 |-------------|-------------|
 | HF_TOKEN | HuggingFace Access Token (required) |
-| WEB_PASSWORD | Web UI password (optional, default: hf123456) |
+| AUTH_TOKEN_SECRET | Token signing secret (required, at least 32 chars) |
 | VITE_AUTH_TIMEOUT_MINUTES | Login session timeout in minutes (optional, default: 60) |
 | VITE_SITE_TITLE | Website title shown in browser tab/login page (optional, default: HF Bucket Sync) |
 | LOCAL_PATH | Local path for file browsing (optional) |

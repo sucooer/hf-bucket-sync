@@ -4,14 +4,13 @@ import time
 import random
 import asyncio
 
-from ...config.security import get_web_password
+from ...config.security import verify_web_password
 
 from ...services.auth_token import issue_token, verify_token
 from ...models.database import add_audit_log
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-WEB_PASSWORD = get_web_password()
 LOGIN_WINDOW_SECONDS = 60
 MAX_LOGIN_ATTEMPTS = 5
 FAILED_LOGIN_DELAY_MIN_SECONDS = 0.2
@@ -65,7 +64,7 @@ async def login(request: Request, password: str = Query(default="")) -> dict:
         await asyncio.sleep(random.uniform(FAILED_LOGIN_DELAY_MIN_SECONDS, FAILED_LOGIN_DELAY_MAX_SECONDS))
         raise HTTPException(status_code=429, detail="认证失败")
 
-    if password == WEB_PASSWORD:
+    if verify_web_password(password):
         token, expires_at = issue_token("web_user")
         _FAILED_LOGINS.pop(ip, None)
         add_audit_log("web_user", "login", "auth", "登录成功", {"expires_at": expires_at}, ip)

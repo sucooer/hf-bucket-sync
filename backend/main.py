@@ -12,7 +12,7 @@ from .models.database import get_notification_settings
 from .services.notification import register_notification_channels
 from .services.auth_token import verify_token
 from .services.sync_queue import start_sync_workers, stop_sync_workers
-from .config.security import validate_security_config
+from .config.security import validate_security_config, ensure_web_password_initialized
 
 
 def _parse_cors_origins() -> list[str]:
@@ -62,6 +62,17 @@ async def auth_middleware(request: Request, call_next):
 
 @app.on_event("startup")
 async def startup_event():
+    password_init = ensure_web_password_initialized()
+    if password_init.created and password_init.generated_password:
+        print("")
+        print("=" * 64)
+        print("HF Bucket Sync - Initial Login Password")
+        print("- The password below is shown only once.")
+        print("- Save it now. If lost, delete /app/data or run reset command.")
+        print(f"- Password: {password_init.generated_password}")
+        print("=" * 64)
+        print("")
+
     settings = get_notification_settings()
     register_notification_channels({
         "telegram": {

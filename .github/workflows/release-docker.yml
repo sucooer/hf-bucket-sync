@@ -9,6 +9,7 @@ permissions:
   packages: write
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   REGISTRY: docker.io
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
 
@@ -17,6 +18,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Validate Docker Hub credentials
+        run: |
+          if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
+            echo "Missing secrets.DOCKERHUB_USERNAME."
+            exit 1
+          fi
+          if [ -z "${{ secrets.DOCKERHUB_TOKEN }}" ]; then
+            echo "Missing secrets.DOCKERHUB_TOKEN."
+            exit 1
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
 

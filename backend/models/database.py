@@ -5,6 +5,7 @@ from typing import Optional
 from pathlib import Path
 
 from .schemas import SyncTask, Schedule, SyncFilter, NotificationSettings
+from ..utils.time import utc_now_iso_z
 
 
 DB_PATH = Path("/app/data/app.db")
@@ -334,7 +335,7 @@ def add_audit_log(actor: str, action: str, resource: str = "", summary: str = ""
         summary,
         json.dumps(payload or {}, ensure_ascii=False),
         ip or "",
-        datetime.now().isoformat()
+        utc_now_iso_z()
     ))
     conn.commit()
     conn.close()

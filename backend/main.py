@@ -12,8 +12,17 @@ from .models.database import get_notification_settings
 from .services.notification import register_notification_channels
 from .services.auth_token import verify_token
 from .services.sync_queue import start_sync_workers, stop_sync_workers
+from .config.security import validate_security_config
 
-WEB_PASSWORD = os.environ.get("WEB_PASSWORD", "hf123456")
+
+def _parse_cors_origins() -> list[str]:
+    raw = os.environ.get("CORS_ALLOW_ORIGINS", "")
+    origins = [item.strip() for item in raw.split(",") if item.strip()]
+    return origins or ["http://localhost:5173", "http://127.0.0.1:5173"]
+
+
+validate_security_config()
+ALLOWED_CORS_ORIGINS = _parse_cors_origins()
 
 app = FastAPI(
     title="HF Bucket Sync",
@@ -23,8 +32,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=ALLOWED_CORS_ORIGINS,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

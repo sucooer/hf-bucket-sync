@@ -1,18 +1,22 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --shell-bg: radial-gradient(ellipse at top right, rgba(91,120,255,0.14), transparent 40%), radial-gradient(ellipse at top left, rgba(57,255,207,0.08), transparent 35%), #111317;
-    --panel-bg: rgba(0,0,0,0.25);
-    --accent: #2563eb;
-    --accent-shadow: rgba(37,99,235,0.30);
+    --shell-bg: radial-gradient(1200px 500px at 100% -10%, rgba(8, 145, 178, 0.15), transparent 55%),
+      radial-gradient(1000px 460px at 0% 0%, rgba(34, 211, 238, 0.14), transparent 50%),
+      linear-gradient(160deg, #ecfeff 0%, #f8fdff 60%, #eef9fb 100%);
+    --panel-bg: rgba(255, 255, 255, 0.8);
+    --accent: #0891b2;
+    --accent-shadow: rgba(8, 145, 178, 0.28);
   }
 
   body {
-    @apply antialiased text-slate-900 bg-slate-50/50;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    @apply antialiased text-slate-900 bg-cyan-50/30;
+    font-family: 'DM Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -43,7 +47,7 @@
   }
 
   .card {
-    @apply bg-white rounded-2xl border border-slate-200/50 p-6 transition-all duration-300;
+    @apply bg-white/90 rounded-2xl border border-cyan-100 p-6 transition-all duration-300;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
   }
 
@@ -53,7 +57,7 @@
   }
 
   .card-hover {
-    @apply hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 hover:border-blue-100;
+    @apply hover:shadow-xl hover:shadow-cyan-200/50 hover:-translate-y-1 hover:border-cyan-200;
   }
 
   .glass {
@@ -65,7 +69,7 @@
   }
 
   .btn-primary {
-    @apply px-5 py-2.5 bg-gradient-to-br from-blue-500 to-blue-700 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-blue-800 active:scale-[0.97] transition-all duration-200 shadow-lg shadow-blue-500/20;
+    @apply px-5 py-2.5 bg-gradient-to-br from-cyan-600 to-teal-600 text-white font-semibold rounded-xl hover:from-cyan-500 hover:to-teal-500 active:scale-[0.97] transition-all duration-200 shadow-lg shadow-cyan-500/20;
   }
 
   .btn-secondary {
@@ -77,7 +81,7 @@
   }
 
   .input {
-    @apply w-full px-4 py-3 bg-slate-100/50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:bg-white outline-none transition-all duration-300 placeholder:text-slate-400 text-sm;
+    @apply w-full px-4 py-3 bg-white/85 border border-cyan-100 rounded-xl focus:ring-4 focus:ring-cyan-500/10 focus:border-cyan-500 focus:bg-white outline-none transition-all duration-300 placeholder:text-slate-400 text-sm;
   }
 
   .dark .input {
@@ -85,7 +89,7 @@
   }
 
   .sidebar-link {
-    @apply flex items-center gap-3 px-4 py-3 text-slate-400 font-semibold rounded-xl hover:bg-white/5 hover:text-white transition-all duration-300 relative overflow-hidden;
+    @apply flex items-center gap-3 px-4 py-3 text-slate-600 font-semibold rounded-xl hover:bg-cyan-50 hover:text-cyan-700 transition-all duration-300 relative overflow-hidden;
   }
   .sidebar-label {
     transition: max-width 260ms ease, opacity 220ms ease, transform 260ms ease, margin 260ms ease;

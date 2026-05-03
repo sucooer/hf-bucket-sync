@@ -4,10 +4,11 @@ import hmac
 import json
 import os
 import time
+from ..config.security import get_token_secret
 
 
 TOKEN_TTL_SECONDS = int(os.environ.get("AUTH_TOKEN_TTL_SECONDS", "7200"))
-TOKEN_SECRET = os.environ.get("AUTH_TOKEN_SECRET", os.environ.get("WEB_PASSWORD", "hf123456"))
+TOKEN_SECRET = get_token_secret()
 
 
 def _b64url_encode(data: bytes) -> str:

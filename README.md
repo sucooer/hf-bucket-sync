@@ -24,6 +24,12 @@ export HF_TOKEN=your_hf_token_here
 export AUTH_TOKEN_SECRET=your_32+_char_secret_here
 ```
 
+For bind-mounted data write permissions (recommended):
+```bash
+export APP_UID=$(id -u)
+export APP_GID=$(id -g)
+```
+
 `AUTH_TOKEN_SECRET` notes:
 - Required, minimum 32 characters.
 - In `.env` for Docker Compose, avoid `$` (or escape it as `$$`) to prevent variable interpolation.
@@ -71,6 +77,7 @@ hf-bucket-sync/
 |-------------|-------------|
 | HF_TOKEN | HuggingFace Access Token (required) |
 | AUTH_TOKEN_SECRET | Token signing secret (required, at least 32 chars) |
+| APP_UID / APP_GID | Container runtime UID/GID mapping for bind mounts (recommended: set to host user id/group id) |
 | VITE_AUTH_TIMEOUT_MINUTES | Login session timeout in minutes (optional, default: 60) |
 | VITE_SITE_TITLE | Website title shown in browser tab/login page (optional, default: HF Bucket Sync) |
 | LOCAL_PATH | Local path for file browsing (optional) |

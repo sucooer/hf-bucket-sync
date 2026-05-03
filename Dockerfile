@@ -21,10 +21,10 @@ ENV VITE_AUTH_TIMEOUT_MINUTES=${VITE_AUTH_TIMEOUT_MINUTES}
 ENV VITE_SITE_TITLE=${VITE_SITE_TITLE}
 
 COPY web/package*.json ./
-RUN npm install
+RUN npm ci
 
 COPY web/ ./
-RUN npm install && npm run build
+RUN npm run build
 
 # Stage 3: Final runtime image
 FROM python:3.12-slim
@@ -45,12 +45,16 @@ COPY --from=frontend-deps /build/dist ./web/dist
 # Copy backend code
 COPY backend/ ./backend/
 
-# Create data directory
-RUN mkdir -p /app/data
+# Create non-root runtime user and required directories
+RUN groupadd --system app && useradd --system --gid app --home-dir /app app \
+    && mkdir -p /app/data \
+    && chown -R app:app /app
 
 ENV PYTHONPATH=/app
 ENV PATH=/usr/local/bin:$PATH
 
 EXPOSE 8000
+
+USER app
 
 CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

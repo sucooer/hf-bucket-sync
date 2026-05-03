@@ -103,7 +103,9 @@ watch([actionFilter, keyword], () => {
 
 function formatDate(dateStr) {
   if (!dateStr) return '-'
-  return new Date(dateStr).toLocaleString('zh-CN')
+  const hasTimezone = /([zZ]|[+-]\d{2}:\d{2})$/.test(dateStr)
+  const normalized = hasTimezone ? dateStr : `${dateStr}Z`
+  return new Date(normalized).toLocaleString('zh-CN')
 }
 
 async function loadLogs() {

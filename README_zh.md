@@ -24,6 +24,12 @@ export HF_TOKEN=your_hf_token_here
 export AUTH_TOKEN_SECRET=your_32+_char_secret_here
 ```
 
+为确保挂载目录可写（推荐）：
+```bash
+export APP_UID=$(id -u)
+export APP_GID=$(id -g)
+```
+
 `AUTH_TOKEN_SECRET` 说明：
 - 必填，长度至少 32 位。
 - 在 Docker Compose 的 `.env` 中，建议不要使用 `$`（或写成 `$$` 转义），避免被变量展开。
@@ -71,6 +77,7 @@ hf-bucket-sync/
 |---------|------|
 | HF_TOKEN | HuggingFace Access Token（必需） |
 | AUTH_TOKEN_SECRET | Token 签名密钥（必需，至少 32 位） |
+| APP_UID / APP_GID | 容器运行用户 UID/GID 映射（推荐设置为宿主机当前用户） |
 | VITE_AUTH_TIMEOUT_MINUTES | 登录会话超时时间（分钟，可选，默认: 60） |
 | VITE_SITE_TITLE | 网站标题（浏览器标签页/登录页，默认: HF Bucket Sync） |
 | LOCAL_PATH | 本地文件浏览路径（可选） |

@@ -1,5 +1,6 @@
 services:
   app:
+    user: "0:0" # Please replace `0:0` with the actual user ID and group ID you want to use.
     build:
       context: .
       args:
@@ -14,8 +15,5 @@ services:
       - .env
     volumes:
       - ./data:/app/data
-      - ${LOCAL_PATH:-.}:/app/local
-    dns:
-      - 8.8.8.8
-      - 114.114.114.114
+      - ${LOCAL_PATH:-/tmp}:/app/local
     restart: unless-stopped

@@ -52,6 +52,16 @@
             <div class="space-y-3">
               <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Bucket 前缀 (可选)</label>
               <input v-model="form.bucketPrefix" type="text" class="input font-mono" placeholder="prefix/path" />
+              <div class="flex justify-end">
+                <button
+                  @click="openBucketPrefixPicker()"
+                  type="button"
+                  :disabled="!form.bucketId"
+                  class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-black text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors disabled:opacity-40"
+                >
+                  选择前缀
+                </button>
+              </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -155,14 +165,6 @@
                 </div>
               </div>
             </div>
-
-            <div v-if="plan.deletes?.length > 0" class="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex gap-4">
-              <ExclamationTriangleIcon class="w-6 h-6 text-rose-500 shrink-0" />
-              <div>
-                <p class="text-xs font-black text-rose-600 uppercase tracking-widest">警告</p>
-                <p class="text-[11px] text-rose-500 font-bold mt-1 leading-relaxed">将删除目标端的 {{ plan.deletes.length }} 个文件</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -171,13 +173,10 @@
     <div id="sync-history" class="card !p-0 overflow-hidden animate-fade-up delay-3 shadow-xl">
       <div class="px-6 md:px-8 py-5 md:py-6 border-b border-slate-100 bg-slate-50/20">
         <div class="flex items-center gap-4">
-          <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600">
-            <ClockIcon class="w-6 h-6" />
-          </div>
+          <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600"><ClockIcon class="w-6 h-6" /></div>
           <h3 class="text-lg md:text-xl font-black text-slate-900 tracking-tight">同步历史</h3>
         </div>
       </div>
-
       <div class="md:hidden p-4 space-y-3">
         <div v-if="history.length === 0" class="text-center text-slate-400 text-sm py-6">暂无同步记录</div>
         <div v-for="task in history" :key="task.id" class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
@@ -190,12 +189,9 @@
             <span class="font-bold">{{ task.direction === 'upload' ? '上传' : '下载' }}</span>
             <span class="font-mono">{{ formatDate(task.created_at) }}</span>
           </div>
-          <div class="pt-1">
-            <button @click="removeTask(task.id)" class="text-xs font-black text-rose-600 hover:text-rose-700 hover:underline">删除</button>
-          </div>
+          <div class="pt-1"><button @click="removeTask(task.id)" class="text-xs font-black text-rose-600 hover:text-rose-700 hover:underline">删除</button></div>
         </div>
       </div>
-
       <div class="hidden md:block overflow-x-auto">
         <table class="w-full">
           <thead>
@@ -212,19 +208,9 @@
             <tr v-for="task in history" :key="task.id" class="group hover:bg-slate-50/30 transition-all duration-300">
               <td class="px-8 py-5"><p class="font-black text-slate-900 text-sm truncate max-w-lg leading-none">{{ task.local_path }}</p></td>
               <td class="px-8 py-5"><p class="text-[10px] text-slate-400 font-mono uppercase tracking-tighter">{{ task.bucket_id }}</p></td>
-              <td class="px-8 py-5">
-                <div class="flex items-center gap-3">
-                  <div :class="task.direction === 'upload' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'" class="p-1.5 rounded-lg">
-                    <ArrowUpIcon v-if="task.direction === 'upload'" class="w-4 h-4" />
-                    <ArrowDownIcon v-else class="w-4 h-4" />
-                  </div>
-                  <span class="text-xs font-black text-slate-600 uppercase tracking-wider">{{ task.direction === 'upload' ? '上传' : '下载' }}</span>
-                </div>
-              </td>
+              <td class="px-8 py-5"><div class="flex items-center gap-3"><div :class="task.direction === 'upload' ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600'" class="p-1.5 rounded-lg"><ArrowUpIcon v-if="task.direction === 'upload'" class="w-4 h-4" /><ArrowDownIcon v-else class="w-4 h-4" /></div><span class="text-xs font-black text-slate-600 uppercase tracking-wider">{{ task.direction === 'upload' ? '上传' : '下载' }}</span></div></td>
               <td class="px-8 py-5"><span :class="getStatusClass(task.status)" class="badge !px-4 shadow-sm border-transparent group-hover:border-current transition-all">{{ getStatusText(task.status) }}</span></td>
-              <td class="px-8 py-5 text-right">
-                <button @click="removeTask(task.id)" class="text-xs font-black text-rose-600 hover:text-rose-700 hover:underline">删除</button>
-              </td>
+              <td class="px-8 py-5 text-right"><button @click="removeTask(task.id)" class="text-xs font-black text-rose-600 hover:text-rose-700 hover:underline">删除</button></td>
               <td class="px-8 py-5 text-right"><span class="text-xs font-black text-slate-500 font-mono uppercase">{{ formatDate(task.created_at) }}</span></td>
             </tr>
           </tbody>
@@ -233,32 +219,38 @@
     </div>
 
     <transition name="page">
-      <div v-if="pathPickerVisible" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div v-if="bucketPrefixPickerVisible" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
           <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-            <h3 class="text-lg font-black text-slate-900">选择本地目录</h3>
-            <button @click="closePathPicker()" class="w-9 h-9 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors">✕</button>
+            <h3 class="text-lg font-black text-slate-900">选择 Bucket 前缀</h3>
+            <button @click="closeBucketPrefixPicker()" class="w-9 h-9 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors">✕</button>
           </div>
           <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-            <button @click="goParentDir()" :disabled="!canGoParent || pickerLoading" class="px-3 py-1.5 rounded-lg text-xs font-black border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50">上一级</button>
-            <input v-model="pickerPathInput" @keyup.enter="jumpToPath()" class="input !py-2 text-xs font-mono" placeholder="输入目录路径并回车" />
-            <button @click="jumpToPath()" :disabled="pickerLoading" class="px-3 py-1.5 rounded-lg text-xs font-black border border-slate-200 text-slate-600 hover:bg-slate-50">跳转</button>
+            <button @click="goBucketPrefixParent()" :disabled="!canGoBucketPrefixParent || bucketPrefixPickerLoading" class="px-3 py-1.5 rounded-lg text-xs font-black border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50">上一级</button>
+            <p class="text-xs text-slate-500 font-mono truncate">{{ bucketPrefixCurrent || '(根目录)' }}</p>
+            <button @click="selectBucketPrefix(bucketPrefixCurrent)" class="ml-auto px-3 py-1.5 rounded-lg text-xs font-black border border-slate-200 text-slate-700 hover:bg-slate-50">选择当前</button>
           </div>
-          <div class="p-4 max-h-[55vh] overflow-y-auto custom-scrollbar">
-            <div v-if="pickerError" class="mb-3 p-3 bg-rose-50 border border-rose-100 rounded-xl text-xs text-rose-600 font-bold">{{ pickerError }}</div>
-            <div v-if="pickerLoading" class="py-12 text-center text-slate-400 text-sm">加载中...</div>
-            <div v-else-if="pickerDirs.length === 0" class="py-12 text-center text-slate-400 text-sm">此目录下暂无子目录</div>
+          <div class="p-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+            <div v-if="bucketPrefixPickerLoading" class="py-12 text-center text-slate-400 text-sm">加载中...</div>
+            <div v-else-if="bucketPrefixPickerError" class="mb-3 p-3 bg-rose-50 border border-rose-100 rounded-xl text-xs text-rose-600 font-bold">{{ bucketPrefixPickerError }}</div>
             <div v-else class="space-y-2">
-              <button v-for="dir in pickerDirs" :key="dir.path" @click="enterDir(dir.path)" class="w-full text-left px-4 py-3 rounded-xl border border-slate-100 hover:bg-slate-50 hover:border-slate-200 transition-colors">
-                <p class="text-sm font-black text-slate-800 truncate">{{ dir.name }}</p>
-                <p class="text-[10px] text-slate-400 font-mono truncate mt-1">{{ dir.path }}</p>
+              <button v-if="bucketPrefixChildren.length === 0" class="w-full text-left px-4 py-3 rounded-xl border border-slate-100 text-slate-400" disabled>当前层级没有子目录</button>
+              <button v-for="child in bucketPrefixChildren" :key="child" @click="enterBucketPrefix(child)" class="w-full text-left px-4 py-3 rounded-xl border border-slate-100 hover:bg-slate-50 hover:border-slate-200 transition-colors">
+                <p class="text-sm font-black text-slate-800 truncate">{{ child }}</p>
               </button>
             </div>
           </div>
-          <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <p class="text-xs text-slate-500 font-mono truncate max-w-[60%]">{{ pickerPath }}</p>
-            <button @click="selectCurrentPath()" :disabled="!pickerPath || pickerLoading" class="btn-primary !py-2 !px-5 text-xs">选择当前目录</button>
-          </div>
+        </div>
+      </div>
+    </transition>
+
+    <transition name="page">
+      <div v-if="pathPickerVisible" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
+          <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between"><h3 class="text-lg font-black text-slate-900">选择本地目录</h3><button @click="closePathPicker()" class="w-9 h-9 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors">✕</button></div>
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-2"><button @click="goParentDir()" :disabled="!canGoParent || pickerLoading" class="px-3 py-1.5 rounded-lg text-xs font-black border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50">上一级</button><input v-model="pickerPathInput" @keyup.enter="jumpToPath()" class="input !py-2 text-xs font-mono" placeholder="输入目录路径并回车" /><button @click="jumpToPath()" :disabled="pickerLoading" class="px-3 py-1.5 rounded-lg text-xs font-black border border-slate-200 text-slate-600 hover:bg-slate-50">跳转</button></div>
+          <div class="p-4 max-h-[55vh] overflow-y-auto custom-scrollbar"><div v-if="pickerError" class="mb-3 p-3 bg-rose-50 border border-rose-100 rounded-xl text-xs text-rose-600 font-bold">{{ pickerError }}</div><div v-if="pickerLoading" class="py-12 text-center text-slate-400 text-sm">加载中...</div><div v-else-if="pickerDirs.length === 0" class="py-12 text-center text-slate-400 text-sm">此目录下暂无子目录</div><div v-else class="space-y-2"><button v-for="dir in pickerDirs" :key="dir.path" @click="enterDir(dir.path)" class="w-full text-left px-4 py-3 rounded-xl border border-slate-100 hover:bg-slate-50 hover:border-slate-200 transition-colors"><p class="text-sm font-black text-slate-800 truncate">{{ dir.name }}</p><p class="text-[10px] text-slate-400 font-mono truncate mt-1">{{ dir.path }}</p></button></div></div>
+          <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50"><p class="text-xs text-slate-500 font-mono truncate max-w-[60%]">{{ pickerPath }}</p><button @click="selectCurrentPath()" :disabled="!pickerPath || pickerLoading" class="btn-primary !py-2 !px-5 text-xs">选择当前目录</button></div>
         </div>
       </div>
     </transition>
@@ -281,16 +273,7 @@ import {
   ExclamationTriangleIcon
 } from '@heroicons/vue/24/outline'
 
-const form = ref({
-  direction: 'upload',
-  localPath: '',
-  bucketId: '',
-  bucketPrefix: '',
-  includePatterns: '*',
-  excludePatterns: '',
-  delete: false
-})
-
+const form = ref({ direction: 'upload', localPath: '', bucketId: '', bucketPrefix: '', includePatterns: '*', excludePatterns: '', delete: false })
 const buckets = ref([])
 const history = ref([])
 const plan = ref({})
@@ -304,19 +287,17 @@ const pickerDirs = ref([])
 const pickerLoading = ref(false)
 const pickerError = ref('')
 const pickerBaseDir = ref('/data')
+const bucketPrefixPickerVisible = ref(false)
+const bucketPrefixPickerLoading = ref(false)
+const bucketPrefixPickerError = ref('')
+const bucketPrefixTree = ref(new Map())
+const bucketPrefixCurrent = ref('')
 const syncNotice = ref({ visible: false, type: 'success', message: '' })
 
 const isValid = computed(() => form.value.localPath && form.value.bucketId)
-const directionOptions = [
-  { label: '上传 (本地 → HF Bucket)', value: 'upload' },
-  { label: '下载 (HF Bucket → 本地)', value: 'download' }
-]
+const directionOptions = [{ label: '上传 (本地 → HF Bucket)', value: 'upload' }, { label: '下载 (HF Bucket → 本地)', value: 'download' }]
 const bucketOptions = computed(() => buckets.value.map(b => ({ label: b.id, value: b.id })))
-const previewCounts = computed(() => ({
-  added: plan.value.uploads?.length || 0,
-  deleted: plan.value.deletes?.length || 0,
-  changed: (plan.value.uploads?.length || 0) + (plan.value.downloads?.length || 0)
-}))
+const previewCounts = computed(() => ({ added: plan.value.uploads?.length || 0, deleted: plan.value.deletes?.length || 0, changed: (plan.value.uploads?.length || 0) + (plan.value.downloads?.length || 0) }))
 const filteredPreviewItems = computed(() => {
   const uploads = (plan.value.uploads || []).map(i => ({ ...i, kind: 'added' }))
   const deletes = (plan.value.deletes || []).map(i => ({ ...i, kind: 'deleted' }))
@@ -327,78 +308,56 @@ const filteredPreviewItems = computed(() => {
   if (previewFilter.value === 'changed') return changed
   return all
 })
-
-function parseIncludePatterns(str) {
-  if (!str || str === '*') return ['*']
-  return str.split(',').map(p => p.trim()).filter(Boolean)
-}
-
-function parseExcludePatterns(str) {
-  if (!str) return []
-  return str.split(',').map(p => p.trim()).filter(Boolean)
-}
-
-function getStatusClass(status) {
-  const map = {
-    completed: 'badge-success',
-    running: 'badge-warning',
-    failed: 'badge-error',
-    pending: 'badge-info'
-  }
-  return map[status] || 'badge-info'
-}
-
-function getStatusText(status) {
-  const map = {
-    completed: '已完成',
-    running: '运行中',
-    failed: '失败',
-    pending: '等待中'
-  }
-  return map[status] || status
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return '-'
-  const date = new Date(dateStr)
-  return date.toLocaleString('zh-CN', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-const canGoParent = computed(() => {
-  if (!pickerPath.value) return false
-  return normalizePath(pickerPath.value) !== normalizePath(pickerBaseDir.value)
+const canGoParent = computed(() => pickerPath.value && normalizePath(pickerPath.value) !== normalizePath(pickerBaseDir.value))
+const canGoBucketPrefixParent = computed(() => !!bucketPrefixCurrent.value)
+const bucketPrefixChildren = computed(() => {
+  const key = bucketPrefixCurrent.value || ''
+  return (bucketPrefixTree.value.get(key) || []).slice().sort((a, b) => a.localeCompare(b, 'zh-CN'))
 })
 
-function normalizePath(path) {
-  if (!path) return '/'
-  return path.replace(/\/+$/, '') || '/'
-}
+function parseIncludePatterns(str) { if (!str || str === '*') return ['*']; return str.split(',').map(p => p.trim()).filter(Boolean) }
+function parseExcludePatterns(str) { if (!str) return []; return str.split(',').map(p => p.trim()).filter(Boolean) }
+function getStatusClass(status) { return ({ completed: 'badge-success', running: 'badge-warning', failed: 'badge-error', pending: 'badge-info' })[status] || 'badge-info' }
+function getStatusText(status) { return ({ completed: '已完成', running: '运行中', failed: '失败', pending: '等待中' })[status] || status }
+function formatDate(dateStr) { if (!dateStr) return '-'; const d = new Date(dateStr); return d.toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) }
+function normalizePath(path) { if (!path) return '/'; return path.replace(/\/+$/, '') || '/' }
+function isWithinBase(path) { const t = normalizePath(path); const b = normalizePath(pickerBaseDir.value); return t === b || t.startsWith(`${b}/`) }
+function showSyncNotice(type, message) { syncNotice.value = { visible: true, type, message }; setTimeout(() => { syncNotice.value.visible = false }, 3200) }
 
-function isWithinBase(path) {
-  const target = normalizePath(path)
-  const base = normalizePath(pickerBaseDir.value)
-  return target === base || target.startsWith(`${base}/`)
+function buildPrefixTree(items) {
+  const map = new Map()
+  map.set('', [])
+  const addChild = (parent, child) => {
+    if (!map.has(parent)) map.set(parent, [])
+    const list = map.get(parent)
+    if (!list.includes(child)) list.push(child)
+  }
+
+  for (const item of items || []) {
+    const raw = String(item?.path || '').replace(/^\/+|\/+$/g, '')
+    if (!raw) continue
+    const segs = raw.split('/')
+    if (segs.length <= 1) continue
+    for (let i = 1; i < segs.length; i += 1) {
+      const parent = i === 1 ? '' : segs.slice(0, i - 1).join('/')
+      const child = segs[i - 1]
+      addChild(parent, child)
+    }
+  }
+  return map
 }
 
 async function loadPickerDirs(path) {
   pickerLoading.value = true
   pickerError.value = ''
   try {
-    const targetPath = normalizePath(path)
-    if (!isWithinBase(targetPath)) {
-      pickerError.value = `路径超出允许范围: ${pickerBaseDir.value}`
-      return
-    }
-    const res = await filesApi.list(targetPath)
+    const target = normalizePath(path)
+    if (!isWithinBase(target)) { pickerError.value = `路径超出允许范围: ${pickerBaseDir.value}`; return }
+    const res = await filesApi.list(target)
     const items = Array.isArray(res.data) ? res.data : []
-    pickerPath.value = targetPath
-    pickerPathInput.value = targetPath
-    pickerDirs.value = items.filter(item => item.is_dir)
+    pickerPath.value = target
+    pickerPathInput.value = target
+    pickerDirs.value = items.filter(i => i.is_dir)
   } catch (e) {
     pickerError.value = e.response?.data?.detail || e.message || '读取目录失败'
   } finally {
@@ -411,49 +370,53 @@ async function openPathPicker() {
   try {
     const baseRes = await filesApi.base()
     pickerBaseDir.value = normalizePath(baseRes.data?.base_dir || '/data')
-  } catch (e) {
+  } catch {
     pickerBaseDir.value = '/data'
   }
-  const rawInitialPath = form.value.localPath || pickerBaseDir.value
-  const initialPath = isWithinBase(rawInitialPath) ? rawInitialPath : pickerBaseDir.value
-  await loadPickerDirs(initialPath)
+  const init = isWithinBase(form.value.localPath || pickerBaseDir.value) ? (form.value.localPath || pickerBaseDir.value) : pickerBaseDir.value
+  await loadPickerDirs(init)
 }
-
-function closePathPicker() {
-  pathPickerVisible.value = false
-}
-
-async function enterDir(path) {
-  await loadPickerDirs(path)
-}
-
+function closePathPicker() { pathPickerVisible.value = false }
+async function enterDir(path) { await loadPickerDirs(path) }
 async function goParentDir() {
   if (!canGoParent.value) return
-  const current = normalizePath(pickerPath.value)
+  const cur = normalizePath(pickerPath.value)
   const base = normalizePath(pickerBaseDir.value)
-  const parent = normalizePath(current.split('/').slice(0, -1).join('/'))
-  if (!isWithinBase(parent) || parent.length < base.length) {
-    await loadPickerDirs(base)
-    return
-  }
+  const parent = normalizePath(cur.split('/').slice(0, -1).join('/'))
+  if (!isWithinBase(parent) || parent.length < base.length) { await loadPickerDirs(base); return }
   await loadPickerDirs(parent)
 }
+async function jumpToPath() { if (!pickerPathInput.value) return; await loadPickerDirs(pickerPathInput.value) }
+function selectCurrentPath() { form.value.localPath = pickerPath.value; closePathPicker() }
 
-async function jumpToPath() {
-  if (!pickerPathInput.value) return
-  await loadPickerDirs(pickerPathInput.value)
+async function openBucketPrefixPicker() {
+  if (!form.value.bucketId) { showSyncNotice('error', '请先选择 Bucket'); return }
+  bucketPrefixPickerVisible.value = true
+  bucketPrefixPickerLoading.value = true
+  bucketPrefixPickerError.value = ''
+  bucketPrefixCurrent.value = ''
+  try {
+    const res = await bucketsApi.tree(form.value.bucketId, '', true)
+    bucketPrefixTree.value = buildPrefixTree(Array.isArray(res.data) ? res.data : [])
+  } catch (e) {
+    bucketPrefixPickerError.value = e.response?.data?.detail || e.message || '读取 Bucket 目录失败'
+  } finally {
+    bucketPrefixPickerLoading.value = false
+  }
 }
-
-function selectCurrentPath() {
-  form.value.localPath = pickerPath.value
-  closePathPicker()
+function closeBucketPrefixPicker() { bucketPrefixPickerVisible.value = false }
+function enterBucketPrefix(child) {
+  bucketPrefixCurrent.value = bucketPrefixCurrent.value ? `${bucketPrefixCurrent.value}/${child}` : child
 }
-
-function showSyncNotice(type, message) {
-  syncNotice.value = { visible: true, type, message }
-  setTimeout(() => {
-    syncNotice.value.visible = false
-  }, 3200)
+function goBucketPrefixParent() {
+  if (!bucketPrefixCurrent.value) return
+  const segs = bucketPrefixCurrent.value.split('/')
+  segs.pop()
+  bucketPrefixCurrent.value = segs.join('/')
+}
+function selectBucketPrefix(prefix) {
+  form.value.bucketPrefix = prefix || ''
+  closeBucketPrefixPicker()
 }
 
 async function dryRun() {
@@ -461,22 +424,17 @@ async function dryRun() {
   running.value = true
   planReady.value = false
   try {
-    const data = {
+    const res = await syncApi.dryRun({
       local_path: form.value.localPath,
       bucket_id: form.value.bucketId,
       bucket_prefix: form.value.bucketPrefix,
       direction: form.value.direction,
-      filter: {
-        include_patterns: parseIncludePatterns(form.value.includePatterns),
-        exclude_patterns: parseExcludePatterns(form.value.excludePatterns)
-      },
+      filter: { include_patterns: parseIncludePatterns(form.value.includePatterns), exclude_patterns: parseExcludePatterns(form.value.excludePatterns) },
       delete: form.value.delete
-    }
-    const res = await syncApi.dryRun(data)
+    })
     plan.value = res.data || {}
     planReady.value = true
   } catch (e) {
-    console.error('Preview failed:', e)
     showSyncNotice('error', '预览失败: ' + (e.response?.data?.detail || e.message))
   } finally {
     running.value = false
@@ -487,23 +445,18 @@ async function execute() {
   if (!isValid.value) return
   running.value = true
   try {
-    const data = {
+    const res = await syncApi.execute({
       local_path: form.value.localPath,
       bucket_id: form.value.bucketId,
       bucket_prefix: form.value.bucketPrefix,
       direction: form.value.direction,
-      filter: {
-        include_patterns: parseIncludePatterns(form.value.includePatterns),
-        exclude_patterns: parseExcludePatterns(form.value.excludePatterns)
-      },
+      filter: { include_patterns: parseIncludePatterns(form.value.includePatterns), exclude_patterns: parseExcludePatterns(form.value.excludePatterns) },
       delete: form.value.delete
-    }
-    const res = await syncApi.execute(data)
+    })
     showSyncNotice('success', res.data?.message || '任务已提交')
     await loadHistory()
     planReady.value = false
   } catch (e) {
-    console.error('Sync failed:', e)
     showSyncNotice('error', '同步失败: ' + (e.response?.data?.detail || e.message))
   } finally {
     running.value = false
@@ -511,38 +464,15 @@ async function execute() {
 }
 
 async function loadHistory() {
-  try {
-    const res = await syncApi.history()
-    history.value = res.data || []
-  } catch (e) {
-    console.error('Failed to load history:', e)
-  }
+  try { const res = await syncApi.history(); history.value = res.data || [] } catch (e) { console.error('Failed to load history:', e) }
 }
-
 async function removeTask(taskId) {
-  if (!taskId) return
-  if (!confirm('确定删除这条同步记录吗？')) return
-  try {
-    await syncApi.deleteTask(taskId)
-    showSyncNotice('success', '同步记录已删除')
-    await loadHistory()
-  } catch (e) {
-    console.error('Delete sync task failed:', e)
-    showSyncNotice('error', '删除失败: ' + (e.response?.data?.detail || e.message))
-  }
+  if (!taskId || !confirm('确定删除这条同步记录吗？')) return
+  try { await syncApi.deleteTask(taskId); showSyncNotice('success', '同步记录已删除'); await loadHistory() } catch (e) { showSyncNotice('error', '删除失败: ' + (e.response?.data?.detail || e.message)) }
 }
-
 async function loadBuckets() {
-  try {
-    const res = await bucketsApi.list()
-    buckets.value = res.data || []
-  } catch (e) {
-    console.error('Failed to load buckets:', e)
-  }
+  try { const res = await bucketsApi.list(); buckets.value = res.data || [] } catch (e) { console.error('Failed to load buckets:', e) }
 }
 
-onMounted(() => {
-  loadBuckets()
-  loadHistory()
-})
+onMounted(() => { loadBuckets(); loadHistory() })
 </script>

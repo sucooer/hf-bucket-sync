@@ -98,6 +98,13 @@ def init_db():
 
 
 def save_sync_task(task: SyncTask):
+    stats_json = None
+    if task.stats is not None:
+        if hasattr(task.stats, "model_dump"):
+            stats_json = json.dumps(task.stats.model_dump())
+        else:
+            stats_json = json.dumps(task.stats)
+
     conn = get_db()
     cursor = conn.cursor()
     cursor.execute("""
@@ -117,7 +124,7 @@ def save_sync_task(task: SyncTask):
         task.message,
         task.created_at.isoformat(),
         task.completed_at.isoformat() if task.completed_at else None,
-        task.stats.json() if task.stats else None
+        stats_json
     ))
     conn.commit()
     conn.close()

@@ -36,6 +36,9 @@ export const authApi = {
 }
 
 export const filesApi = {
+  base: () =>
+    api.get('/files/base'),
+
   list: (path, includeHidden = false) =>
     api.get('/files/list', { params: { path, include_hidden: includeHidden } }),
 

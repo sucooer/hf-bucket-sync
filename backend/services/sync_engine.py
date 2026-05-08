@@ -17,9 +17,19 @@ TRANSIENT_ERROR_KEYWORDS = [
     "timeout", "timed out", "connection", "network", "temporarily", "unreachable", "reset by peer", "503", "502"
 ]
 
+
+def _iter_sync_operations(result):
+    if not result:
+        return []
+    operations = getattr(result, "operations", None)
+    if operations is not None:
+        return operations
+    return result
+
+
 def create_dry_run_plan(task: SyncTask) -> SyncPlan:
     try:
-        client = get_hf_client()
+        _ = get_hf_client()
 
         source = task.local_path
         if task.direction == "upload":
@@ -30,7 +40,7 @@ def create_dry_run_plan(task: SyncTask) -> SyncPlan:
 
         result = hf_sync_bucket(
             source=source,
-            destination=destination,
+            dest=destination,
             delete=task.delete,
             include=task.filter.include_patterns if task.filter.include_patterns else None,
             exclude=task.filter.exclude_patterns if task.filter.exclude_patterns else None,
@@ -40,7 +50,7 @@ def create_dry_run_plan(task: SyncTask) -> SyncPlan:
 
         plan = SyncPlan()
         if result:
-            for item in result:
+            for item in _iter_sync_operations(result):
                 action = item.action.value if hasattr(item.action, 'value') else str(item.action)
                 file_info = {
                     "path": item.path,
@@ -61,7 +71,7 @@ def create_dry_run_plan(task: SyncTask) -> SyncPlan:
         return plan
 
     except Exception as e:
-        return SyncPlan()
+        raise ValueError(f"Dry-run failed: {e}")
 
 
 async def _send_notification(task_name: str, status: str, message: str, stats: dict = None):
@@ -97,7 +107,7 @@ def _run_sync_once(task: SyncTask):
         source = f"hf://buckets/{task.bucket_id}/{task.bucket_prefix}".rstrip("/")
     return hf_sync_bucket(
         source=source,
-        destination=destination,
+        dest=destination,
         delete=task.delete,
         include=task.filter.include_patterns if task.filter.include_patterns else None,
         exclude=task.filter.exclude_patterns if task.filter.exclude_patterns else None,
@@ -134,7 +144,7 @@ def execute_sync_task(task: SyncTask) -> SyncResult:
         skips = 0
 
         if result:
-            for item in result:
+            for item in _iter_sync_operations(result):
                 action = item.action.value if hasattr(item.action, 'value') else str(item.action)
                 if action == "upload":
                     uploads += 1

@@ -12,6 +12,11 @@ router = APIRouter(prefix="/api/files", tags=["files"])
 ALLOWED_BASE_DIR = Path(os.environ.get("ALLOWED_BASE_DIR", "/data")).resolve()
 
 
+@router.get("/base")
+async def get_base_dir() -> dict:
+    return {"base_dir": str(ALLOWED_BASE_DIR)}
+
+
 def _resolve_safe_path(path: str) -> Path:
     resolved = Path(path).expanduser().resolve()
     if resolved != ALLOWED_BASE_DIR and ALLOWED_BASE_DIR not in resolved.parents:

@@ -6,6 +6,15 @@
         <p class="hidden md:block text-slate-500 font-medium mt-2">手动触发本地目录与远程 Bucket 之间的同步。</p>
       </div>
     </div>
+    <div
+      v-if="syncNotice.visible"
+      class="animate-fade-up rounded-2xl border px-4 py-3 text-sm font-bold"
+      :class="syncNotice.type === 'success'
+        ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+        : 'bg-rose-50 border-rose-200 text-rose-700'"
+    >
+      {{ syncNotice.message }}
+    </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Configuration Form -->
@@ -42,6 +51,15 @@
               <div class="relative group">
                 <input v-model="form.localPath" type="text" class="input pl-12 group-hover:border-slate-300 transition-all font-mono" placeholder="/path/to/local" />
                 <ComputerDesktopIcon class="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-300 group-hover:text-blue-500 transition-colors" />
+              </div>
+              <div class="flex justify-end">
+                <button
+                  @click="openPathPicker()"
+                  type="button"
+                  class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-black text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors"
+                >
+                  选择目录
+                </button>
               </div>
             </div>
 
@@ -88,7 +106,7 @@
                 <div class="flex items-center justify-center gap-3">
                   <PlayIcon v-if="!running" class="w-6 h-6" />
                   <div v-else class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  <span class="font-black uppercase tracking-widest text-xs">执行同步</span>
+                  <span class="font-black uppercase tracking-widest text-xs">同步</span>
                 </div>
               </button>
             </div>
@@ -255,12 +273,67 @@
         </table>
       </div>
     </div>
+
+    <transition name="page">
+      <div v-if="pathPickerVisible" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
+          <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+            <h3 class="text-lg font-black text-slate-900">选择本地目录</h3>
+            <button @click="closePathPicker()" class="w-9 h-9 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors">
+              ✕
+            </button>
+          </div>
+          <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+            <button @click="goParentDir()" :disabled="!canGoParent || pickerLoading" class="px-3 py-1.5 rounded-lg text-xs font-black border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50">
+              上一级
+            </button>
+            <input
+              v-model="pickerPathInput"
+              @keyup.enter="jumpToPath()"
+              class="input !py-2 text-xs font-mono"
+              placeholder="输入目录路径并回车"
+            />
+            <button @click="jumpToPath()" :disabled="pickerLoading" class="px-3 py-1.5 rounded-lg text-xs font-black border border-slate-200 text-slate-600 hover:bg-slate-50">
+              跳转
+            </button>
+          </div>
+          <div class="p-4 max-h-[55vh] overflow-y-auto custom-scrollbar">
+            <div v-if="pickerError" class="mb-3 p-3 bg-rose-50 border border-rose-100 rounded-xl text-xs text-rose-600 font-bold">
+              {{ pickerError }}
+            </div>
+            <div v-if="pickerLoading" class="py-12 text-center text-slate-400 text-sm">加载中...</div>
+            <div v-else-if="pickerDirs.length === 0" class="py-12 text-center text-slate-400 text-sm">此目录下暂无子目录</div>
+            <div v-else class="space-y-2">
+              <button
+                v-for="dir in pickerDirs"
+                :key="dir.path"
+                @click="enterDir(dir.path)"
+                class="w-full text-left px-4 py-3 rounded-xl border border-slate-100 hover:bg-slate-50 hover:border-slate-200 transition-colors"
+              >
+                <p class="text-sm font-black text-slate-800 truncate">{{ dir.name }}</p>
+                <p class="text-[10px] text-slate-400 font-mono truncate mt-1">{{ dir.path }}</p>
+              </button>
+            </div>
+          </div>
+          <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <p class="text-xs text-slate-500 font-mono truncate max-w-[60%]">{{ pickerPath }}</p>
+            <button
+              @click="selectCurrentPath()"
+              :disabled="!pickerPath || pickerLoading"
+              class="btn-primary !py-2 !px-5 text-xs"
+            >
+              选择当前目录
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { bucketsApi, syncApi } from '@/api'
+import { bucketsApi, syncApi, filesApi } from '@/api'
 import UISelect from '@/components/UISelect.vue'
 import {
   Cog6ToothIcon,
@@ -294,6 +367,18 @@ const running = ref(false)
 const loading = ref(false)
 const recentHistoryCollapsed = ref(false)
 const previewFilter = ref('all')
+const pathPickerVisible = ref(false)
+const pickerPath = ref('')
+const pickerPathInput = ref('')
+const pickerDirs = ref([])
+const pickerLoading = ref(false)
+const pickerError = ref('')
+const pickerBaseDir = ref('/data')
+const syncNotice = ref({
+  visible: false,
+  type: 'success',
+  message: ''
+})
 
 const isValid = computed(() => {
   return form.value.localPath && form.value.bucketId
@@ -325,8 +410,13 @@ const filteredPreviewItems = computed(() => {
   return all
 })
 
-function parsePatterns(str) {
+function parseIncludePatterns(str) {
   if (!str || str === '*') return ['*']
+  return str.split(',').map(p => p.trim()).filter(Boolean)
+}
+
+function parseExcludePatterns(str) {
+  if (!str) return []
   return str.split(',').map(p => p.trim()).filter(Boolean)
 }
 
@@ -361,6 +451,97 @@ function formatDate(dateStr) {
   })
 }
 
+const canGoParent = computed(() => {
+  if (!pickerPath.value) return false
+  return normalizePath(pickerPath.value) !== normalizePath(pickerBaseDir.value)
+})
+
+function normalizePath(path) {
+  if (!path) return '/'
+  return path.replace(/\/+$/, '') || '/'
+}
+
+function isWithinBase(path) {
+  const target = normalizePath(path)
+  const base = normalizePath(pickerBaseDir.value)
+  return target === base || target.startsWith(`${base}/`)
+}
+
+async function loadPickerDirs(path) {
+  pickerLoading.value = true
+  pickerError.value = ''
+  try {
+    const targetPath = normalizePath(path)
+    if (!isWithinBase(targetPath)) {
+      pickerError.value = `路径超出允许范围: ${pickerBaseDir.value}`
+      return
+    }
+    const res = await filesApi.list(targetPath)
+    const items = Array.isArray(res.data) ? res.data : []
+    pickerPath.value = targetPath
+    pickerPathInput.value = targetPath
+    pickerDirs.value = items.filter(item => item.is_dir)
+  } catch (e) {
+    pickerError.value = e.response?.data?.detail || e.message || '读取目录失败'
+  } finally {
+    pickerLoading.value = false
+  }
+}
+
+async function openPathPicker() {
+  pathPickerVisible.value = true
+  try {
+    const baseRes = await filesApi.base()
+    pickerBaseDir.value = normalizePath(baseRes.data?.base_dir || '/data')
+  } catch (e) {
+    pickerBaseDir.value = '/data'
+  }
+  const rawInitialPath = form.value.localPath || pickerBaseDir.value
+  const initialPath = isWithinBase(rawInitialPath) ? rawInitialPath : pickerBaseDir.value
+  await loadPickerDirs(initialPath)
+}
+
+function closePathPicker() {
+  pathPickerVisible.value = false
+}
+
+async function enterDir(path) {
+  await loadPickerDirs(path)
+}
+
+async function goParentDir() {
+  if (!canGoParent.value) return
+  const current = normalizePath(pickerPath.value)
+  const base = normalizePath(pickerBaseDir.value)
+  const parent = normalizePath(current.split('/').slice(0, -1).join('/'))
+  if (!isWithinBase(parent) || parent.length < base.length) {
+    await loadPickerDirs(base)
+    return
+  }
+  await loadPickerDirs(parent)
+}
+
+async function jumpToPath() {
+  if (!pickerPathInput.value) return
+  await loadPickerDirs(pickerPathInput.value)
+}
+
+function selectCurrentPath() {
+  form.value.localPath = pickerPath.value
+  closePathPicker()
+}
+
+function showSyncNotice(type, message) {
+  syncNotice.value = {
+    visible: true,
+    type,
+    message
+  }
+  setTimeout(() => {
+    syncNotice.value.visible = false
+  }, 3200)
+}
+
 async function dryRun() {
   if (!isValid.value) return
   running.value = true
@@ -372,8 +553,8 @@ async function dryRun() {
       bucket_prefix: form.value.bucketPrefix,
       direction: form.value.direction,
       filter: {
-        include_patterns: parsePatterns(form.value.includePatterns),
-        exclude_patterns: parsePatterns(form.value.excludePatterns)
+        include_patterns: parseIncludePatterns(form.value.includePatterns),
+        exclude_patterns: parseExcludePatterns(form.value.excludePatterns)
       },
       delete: form.value.delete
     }
@@ -398,18 +579,18 @@ async function execute() {
       bucket_prefix: form.value.bucketPrefix,
       direction: form.value.direction,
       filter: {
-        include_patterns: parsePatterns(form.value.includePatterns),
-        exclude_patterns: parsePatterns(form.value.excludePatterns)
+        include_patterns: parseIncludePatterns(form.value.includePatterns),
+        exclude_patterns: parseExcludePatterns(form.value.excludePatterns)
       },
       delete: form.value.delete
     }
     const res = await syncApi.execute(data)
-    alert(res.data?.message || '任务已提交')
+    showSyncNotice('success', res.data?.message || '任务已提交')
     await loadHistory()
     planReady.value = false
   } catch (e) {
     console.error('Sync failed:', e)
-    alert('同步失败: ' + (e.response?.data?.detail || e.message))
+    showSyncNotice('error', '同步失败: ' + (e.response?.data?.detail || e.message))
   } finally {
     running.value = false
   }

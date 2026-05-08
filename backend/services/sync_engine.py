@@ -17,9 +17,19 @@ TRANSIENT_ERROR_KEYWORDS = [
     "timeout", "timed out", "connection", "network", "temporarily", "unreachable", "reset by peer", "503", "502"
 ]
 
+
+def _iter_sync_operations(result):
+    if not result:
+        return []
+    operations = getattr(result, "operations", None)
+    if operations is not None:
+        return operations
+    return result
+
+
 def create_dry_run_plan(task: SyncTask) -> SyncPlan:
     try:
-        client = get_hf_client()
+        _ = get_hf_client()
 
         source = task.local_path
         if task.direction == "upload":
@@ -30,7 +40,7 @@ def create_dry_run_plan(task: SyncTask) -> SyncPlan:
 
         result = hf_sync_bucket(
             source=source,
-            destination=destination,
+            dest=destination,
             delete=task.delete,
             include=task.filter.include_patterns if task.filter.include_patterns else None,
             exclude=task.filter.exclude_patterns if task.filter.exclude_patterns else None,
@@ -40,7 +50,7 @@ def create_dry_run_plan(task: SyncTask) -> SyncPlan:
 
         plan = SyncPlan()
         if result:
-            for item in result:
+            for item in _iter_sync_operations(result):
                 action = item.action.value if hasattr(item.action, 'value') else str(item.action)
                 file_info = {
                     "path": item.path,
@@ -61,7 +71,7 @@ def create_dry_run_plan(task: SyncTask) -> SyncPlan:
         return plan
 
     except Exception as e:
-        return SyncPlan()
+        raise ValueError(f"Dry-run failed: {e}")
 
 
 async def _send_notification(task_name: str, status: str, message: str, stats: dict = None):
@@ -83,6 +93,17 @@ async def _send_notification(task_name: str, status: str, message: str, stats: d
         await send_sync_notification(task_name, status, message, stats, channels)
 
 
+def _dispatch_notification(task_name: str, status: str, message: str, stats: dict = None):
+    import asyncio
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(_send_notification(task_name, status, message, stats))
+    except RuntimeError:
+        asyncio.run(_send_notification(task_name, status, message, stats))
+    except Exception as exc:
+        print(f"Notification dispatch failed: {exc}")
+
+
 def _is_transient_error(error_text: str) -> bool:
     text = (error_text or "").lower()
     return any(keyword in text for keyword in TRANSIENT_ERROR_KEYWORDS)
@@ -97,7 +118,7 @@ def _run_sync_once(task: SyncTask):
         source = f"hf://buckets/{task.bucket_id}/{task.bucket_prefix}".rstrip("/")
     return hf_sync_bucket(
         source=source,
-        destination=destination,
+        dest=destination,
         delete=task.delete,
         include=task.filter.include_patterns if task.filter.include_patterns else None,
         exclude=task.filter.exclude_patterns if task.filter.exclude_patterns else None,
@@ -134,7 +155,7 @@ def execute_sync_task(task: SyncTask) -> SyncResult:
         skips = 0
 
         if result:
-            for item in result:
+            for item in _iter_sync_operations(result):
                 action = item.action.value if hasattr(item.action, 'value') else str(item.action)
                 if action == "upload":
                     uploads += 1
@@ -159,25 +180,7 @@ def execute_sync_task(task: SyncTask) -> SyncResult:
         task.message = f"Synced: {uploads} uploads, {downloads} downloads, {deletes} deletes, {skips} skips"
         save_sync_task(task)
 
-        import asyncio
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                asyncio.create_task(_send_notification(
-                    task.local_path,
-                    "completed",
-                    task.message,
-                    stats
-                ))
-            else:
-                loop.run_until_complete(_send_notification(
-                    task.local_path,
-                    "completed",
-                    task.message,
-                    stats
-                ))
-        except Exception:
-            pass
+        _dispatch_notification(task.local_path, "completed", task.message, stats)
 
         return SyncResult(
             task_id=task.id,
@@ -192,25 +195,7 @@ def execute_sync_task(task: SyncTask) -> SyncResult:
         task.message = f"Sync failed: {str(e)}"
         save_sync_task(task)
 
-        import asyncio
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                asyncio.create_task(_send_notification(
-                    task.local_path,
-                    "failed",
-                    task.message,
-                    {}
-                ))
-            else:
-                loop.run_until_complete(_send_notification(
-                    task.local_path,
-                    "failed",
-                    task.message,
-                    {}
-                ))
-        except Exception:
-            pass
+        _dispatch_notification(task.local_path, "failed", task.message, {})
 
         return SyncResult(
             task_id=task.id,

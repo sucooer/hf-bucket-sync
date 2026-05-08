@@ -71,11 +71,14 @@
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative app-shell">
-      <div class="fixed top-4 right-4 md:top-6 md:right-6 z-30">
-        <div class="h-12 md:h-16 px-2.5 md:px-4 rounded-2xl md:rounded-3xl border border-white/80 bg-white/85 backdrop-blur-xl flex items-center gap-1 md:gap-2 shadow-xl shadow-cyan-100/60">
+      <div
+        class="fixed top-4 right-4 md:top-6 md:right-6 z-30 transition-all duration-300"
+        :class="isMobile && !mobileToolbarVisible ? 'opacity-0 translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0'"
+      >
+        <div class="h-12 md:h-16 px-2.5 md:px-4 rounded-2xl md:rounded-3xl border border-cyan-100/70 bg-cyan-50/90 backdrop-blur-xl flex items-center gap-1 md:gap-2 shadow-xl shadow-cyan-200/50">
           <button
-            @click="isMobile ? (sidebarOpen = !sidebarOpen) : reloadPage()"
-            class="p-2 md:p-2.5 text-slate-600 hover:text-cyan-700 hover:bg-cyan-50 rounded-lg md:rounded-xl transition-all duration-300"
+            @click="toggleMainMenu"
+            class="p-2 md:p-2.5 text-slate-700 hover:text-cyan-800 hover:bg-white/80 rounded-lg md:rounded-xl transition-all duration-300"
             :title="isMobile ? (sidebarOpen ? '关闭菜单' : '打开菜单') : '刷新'"
           >
             <Bars3Icon v-if="isMobile && !sidebarOpen" class="w-5 h-5" />
@@ -85,14 +88,14 @@
           <button
             v-if="isMobile"
             @click="reloadPage"
-            class="p-2 text-slate-600 hover:text-cyan-700 hover:bg-cyan-50 rounded-lg transition-all duration-300"
+            class="p-2 text-slate-700 hover:text-cyan-800 hover:bg-white/80 rounded-lg transition-all duration-300"
             title="刷新"
           >
             <ArrowPathIcon class="w-5 h-5" />
           </button>
           <button
             @click="doLogout()"
-            class="p-2 md:p-2.5 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg md:rounded-xl transition-all duration-300"
+            class="p-2 md:p-2.5 text-slate-700 hover:text-rose-600 hover:bg-rose-50 rounded-lg md:rounded-xl transition-all duration-300"
             title="退出登录"
           >
             <ArrowRightOnRectangleIcon class="w-5 h-5" />
@@ -100,8 +103,8 @@
 
           <div class="relative">
             <button
-              @click="notifOpen = !notifOpen"
-              class="relative p-2 md:p-2.5 text-slate-600 hover:text-cyan-700 hover:bg-cyan-50 rounded-lg md:rounded-xl transition-all duration-300"
+              @click="toggleNotificationMenu"
+              class="relative p-2 md:p-2.5 text-slate-700 hover:text-cyan-800 hover:bg-white/80 rounded-lg md:rounded-xl transition-all duration-300"
             >
               <BellIcon class="w-5 h-5" />
               <span v-if="notifications.length > 0" class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-slate-900"></span>
@@ -184,7 +187,9 @@ const notifOpen = ref(false)
 const notifications = ref([])
 const windowWidth = ref(window.innerWidth)
 const sidebarCollapsed = ref(true)
+const mobileToolbarVisible = ref(true)
 let authTimer = null
+let mobileToolbarTimer = null
 const activityEvents = ['click', 'keydown', 'touchstart', 'mousemove', 'scroll']
 
 const isMobile = computed(() => windowWidth.value < 1024)
@@ -201,12 +206,18 @@ const handleResize = () => {
 onMounted(() => {
   initTheme()
   window.addEventListener('resize', handleResize)
+  window.addEventListener('touchstart', handleMobileInteraction, { passive: true })
+  window.addEventListener('scroll', handleMobileInteraction, { passive: true })
   handleResize()
+  scheduleMobileToolbarHide()
   startAuthSessionWatcher()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
+  window.removeEventListener('touchstart', handleMobileInteraction)
+  window.removeEventListener('scroll', handleMobileInteraction)
+  clearMobileToolbarTimer()
   stopAuthSessionWatcher()
 })
 
@@ -215,6 +226,7 @@ watch(() => route.path, (newPath) => {
     sidebarOpen.value = false
   }
   notifOpen.value = false
+  showMobileToolbar()
   if (newPath === '/login') {
     stopAuthSessionWatcher()
   } else {
@@ -224,6 +236,52 @@ watch(() => route.path, (newPath) => {
 
 function reloadPage() {
   window.location.reload()
+}
+
+function clearMobileToolbarTimer() {
+  if (mobileToolbarTimer) {
+    window.clearTimeout(mobileToolbarTimer)
+    mobileToolbarTimer = null
+  }
+}
+
+function scheduleMobileToolbarHide() {
+  clearMobileToolbarTimer()
+  if (!isMobile.value) {
+    mobileToolbarVisible.value = true
+    return
+  }
+  if (sidebarOpen.value || notifOpen.value) {
+    mobileToolbarVisible.value = true
+    return
+  }
+  mobileToolbarTimer = window.setTimeout(() => {
+    mobileToolbarVisible.value = false
+  }, 2200)
+}
+
+function showMobileToolbar() {
+  if (!isMobile.value) return
+  mobileToolbarVisible.value = true
+  scheduleMobileToolbarHide()
+}
+
+function handleMobileInteraction() {
+  showMobileToolbar()
+}
+
+function toggleMainMenu() {
+  if (isMobile.value) {
+    sidebarOpen.value = !sidebarOpen.value
+    showMobileToolbar()
+    return
+  }
+  reloadPage()
+}
+
+function toggleNotificationMenu() {
+  notifOpen.value = !notifOpen.value
+  showMobileToolbar()
 }
 
 async function doLogout() {
@@ -239,6 +297,10 @@ function toggleSidebarCollapse() {
   if (isMobile.value) return
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
+
+watch([isMobile, sidebarOpen, notifOpen], () => {
+  scheduleMobileToolbarHide()
+})
 
 function handleUserActivity() {
   if (isLoginPage.value) return

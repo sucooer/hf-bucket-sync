@@ -319,7 +319,23 @@ function parseIncludePatterns(str) { if (!str || str === '*') return ['*']; retu
 function parseExcludePatterns(str) { if (!str) return []; return str.split(',').map(p => p.trim()).filter(Boolean) }
 function getStatusClass(status) { return ({ completed: 'badge-success', running: 'badge-warning', failed: 'badge-error', pending: 'badge-info' })[status] || 'badge-info' }
 function getStatusText(status) { return ({ completed: '已完成', running: '运行中', failed: '失败', pending: '等待中' })[status] || status }
-function formatDate(dateStr) { if (!dateStr) return '-'; const d = new Date(dateStr); return d.toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) }
+function formatDate(dateStr) {
+  if (!dateStr) return '-'
+  let normalized = String(dateStr)
+  const hasTimezone = /([zZ]|[+-]\d{2}:?\d{2})$/.test(normalized)
+  if (!hasTimezone) {
+    normalized = `${normalized}Z`
+  }
+  const d = new Date(normalized)
+  if (Number.isNaN(d.getTime())) return '-'
+  return d.toLocaleString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
 function normalizePath(path) { if (!path) return '/'; return path.replace(/\/+$/, '') || '/' }
 function isWithinBase(path) { const t = normalizePath(path); const b = normalizePath(pickerBaseDir.value); return t === b || t.startsWith(`${b}/`) }
 function showSyncNotice(type, message) { syncNotice.value = { visible: true, type, message }; setTimeout(() => { syncNotice.value.visible = false }, 3200) }

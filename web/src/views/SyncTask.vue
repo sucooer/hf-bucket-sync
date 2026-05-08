@@ -6,6 +6,15 @@
         <p class="hidden md:block text-slate-500 font-medium mt-2">手动触发本地目录与远程 Bucket 之间的同步。</p>
       </div>
     </div>
+    <div
+      v-if="syncNotice.visible"
+      class="animate-fade-up rounded-2xl border px-4 py-3 text-sm font-bold"
+      :class="syncNotice.type === 'success'
+        ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+        : 'bg-rose-50 border-rose-200 text-rose-700'"
+    >
+      {{ syncNotice.message }}
+    </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
       <!-- Configuration Form -->
@@ -97,7 +106,7 @@
                 <div class="flex items-center justify-center gap-3">
                   <PlayIcon v-if="!running" class="w-6 h-6" />
                   <div v-else class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  <span class="font-black uppercase tracking-widest text-xs">执行同步</span>
+                  <span class="font-black uppercase tracking-widest text-xs">同步</span>
                 </div>
               </button>
             </div>
@@ -365,6 +374,11 @@ const pickerDirs = ref([])
 const pickerLoading = ref(false)
 const pickerError = ref('')
 const pickerBaseDir = ref('/data')
+const syncNotice = ref({
+  visible: false,
+  type: 'success',
+  message: ''
+})
 
 const isValid = computed(() => {
   return form.value.localPath && form.value.bucketId
@@ -517,6 +531,17 @@ function selectCurrentPath() {
   closePathPicker()
 }
 
+function showSyncNotice(type, message) {
+  syncNotice.value = {
+    visible: true,
+    type,
+    message
+  }
+  setTimeout(() => {
+    syncNotice.value.visible = false
+  }, 3200)
+}
+
 async function dryRun() {
   if (!isValid.value) return
   running.value = true
@@ -560,12 +585,12 @@ async function execute() {
       delete: form.value.delete
     }
     const res = await syncApi.execute(data)
-    alert(res.data?.message || '任务已提交')
+    showSyncNotice('success', res.data?.message || '任务已提交')
     await loadHistory()
     planReady.value = false
   } catch (e) {
     console.error('Sync failed:', e)
-    alert('同步失败: ' + (e.response?.data?.detail || e.message))
+    showSyncNotice('error', '同步失败: ' + (e.response?.data?.detail || e.message))
   } finally {
     running.value = false
   }

@@ -220,11 +220,11 @@
           </div>
           <div v-if="!recentHistoryCollapsed" class="p-4 space-y-2">
             <div v-if="history.length === 0" class="text-center text-slate-400 text-sm py-6">暂无同步记录</div>
-            <div v-for="task in history.slice(0, 5)" :key="task.id" class="p-3 rounded-xl border border-slate-100 bg-white/60">
-              <p class="text-sm font-bold text-slate-900 truncate">{{ task.local_path }}</p>
+            <div v-for="task in history.slice(0, 5)" :key="task.id" class="p-3 rounded-xl border border-slate-200 bg-slate-50">
+              <p class="text-sm font-black text-slate-900 truncate">{{ task.local_path }}</p>
               <div class="mt-1 flex items-center justify-between">
-                <span class="text-[10px] text-slate-400 font-mono truncate max-w-[45%]">{{ task.bucket_id }}</span>
-                <span :class="getStatusClass(task.status)" class="badge !px-2">{{ getStatusText(task.status) }}</span>
+                <span class="text-[10px] text-slate-600 font-mono truncate max-w-[45%]">{{ task.bucket_id }}</span>
+                <span :class="getStatusClass(task.status)" class="badge !px-2 !font-black">{{ getStatusText(task.status) }}</span>
               </div>
             </div>
           </div>

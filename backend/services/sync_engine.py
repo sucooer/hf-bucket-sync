@@ -93,6 +93,17 @@ async def _send_notification(task_name: str, status: str, message: str, stats: d
         await send_sync_notification(task_name, status, message, stats, channels)
 
 
+def _dispatch_notification(task_name: str, status: str, message: str, stats: dict = None):
+    import asyncio
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(_send_notification(task_name, status, message, stats))
+    except RuntimeError:
+        asyncio.run(_send_notification(task_name, status, message, stats))
+    except Exception as exc:
+        print(f"Notification dispatch failed: {exc}")
+
+
 def _is_transient_error(error_text: str) -> bool:
     text = (error_text or "").lower()
     return any(keyword in text for keyword in TRANSIENT_ERROR_KEYWORDS)
@@ -169,25 +180,7 @@ def execute_sync_task(task: SyncTask) -> SyncResult:
         task.message = f"Synced: {uploads} uploads, {downloads} downloads, {deletes} deletes, {skips} skips"
         save_sync_task(task)
 
-        import asyncio
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                asyncio.create_task(_send_notification(
-                    task.local_path,
-                    "completed",
-                    task.message,
-                    stats
-                ))
-            else:
-                loop.run_until_complete(_send_notification(
-                    task.local_path,
-                    "completed",
-                    task.message,
-                    stats
-                ))
-        except Exception:
-            pass
+        _dispatch_notification(task.local_path, "completed", task.message, stats)
 
         return SyncResult(
             task_id=task.id,
@@ -202,25 +195,7 @@ def execute_sync_task(task: SyncTask) -> SyncResult:
         task.message = f"Sync failed: {str(e)}"
         save_sync_task(task)
 
-        import asyncio
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                asyncio.create_task(_send_notification(
-                    task.local_path,
-                    "failed",
-                    task.message,
-                    {}
-                ))
-            else:
-                loop.run_until_complete(_send_notification(
-                    task.local_path,
-                    "failed",
-                    task.message,
-                    {}
-                ))
-        except Exception:
-            pass
+        _dispatch_notification(task.local_path, "failed", task.message, {})
 
         return SyncResult(
             task_id=task.id,

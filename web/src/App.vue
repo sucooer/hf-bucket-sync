@@ -71,14 +71,22 @@
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative app-shell">
-      <div
-        class="fixed top-4 right-4 md:top-6 md:right-6 z-30 transition-all duration-300"
-        :class="isMobile && !mobileToolbarVisible ? 'opacity-0 translate-y-2 pointer-events-none' : 'opacity-100 translate-y-0'"
-      >
-        <div class="h-12 md:h-16 px-2.5 md:px-4 rounded-2xl md:rounded-3xl border border-cyan-100/70 bg-cyan-50/90 backdrop-blur-xl flex items-center gap-1 md:gap-2 shadow-xl shadow-cyan-200/50">
+      <div class="fixed top-4 right-4 md:top-6 md:right-6 z-30">
+        <button
+          v-if="isMobile && !mobileToolbarVisible"
+          @click="showMobileToolbar()"
+          class="w-10 h-10 rounded-full border border-slate-300/80 bg-slate-100/90 text-slate-600 shadow-lg shadow-slate-300/40 backdrop-blur-md"
+          title="打开菜单"
+        >
+          <Bars3Icon class="w-5 h-5 mx-auto" />
+        </button>
+        <div
+          class="h-12 md:h-16 px-2.5 md:px-4 rounded-2xl md:rounded-3xl border border-slate-300/70 bg-slate-100/88 backdrop-blur-xl flex items-center gap-1 md:gap-2 shadow-lg shadow-slate-300/35 transition-all duration-300"
+          :class="isMobile && !mobileToolbarVisible ? 'opacity-0 -translate-y-2 pointer-events-none absolute right-0 top-0' : 'opacity-100 translate-y-0'"
+        >
           <button
             @click="toggleMainMenu"
-            class="p-2 md:p-2.5 text-slate-700 hover:text-cyan-800 hover:bg-white/80 rounded-lg md:rounded-xl transition-all duration-300"
+            class="p-2 md:p-2.5 text-slate-700 hover:text-slate-900 hover:bg-white/70 rounded-lg md:rounded-xl transition-all duration-300"
             :title="isMobile ? (sidebarOpen ? '关闭菜单' : '打开菜单') : '刷新'"
           >
             <Bars3Icon v-if="isMobile && !sidebarOpen" class="w-5 h-5" />
@@ -88,7 +96,7 @@
           <button
             v-if="isMobile"
             @click="reloadPage"
-            class="p-2 text-slate-700 hover:text-cyan-800 hover:bg-white/80 rounded-lg transition-all duration-300"
+            class="p-2 text-slate-700 hover:text-slate-900 hover:bg-white/70 rounded-lg transition-all duration-300"
             title="刷新"
           >
             <ArrowPathIcon class="w-5 h-5" />
@@ -104,17 +112,17 @@
           <div class="relative">
             <button
               @click="toggleNotificationMenu"
-              class="relative p-2 md:p-2.5 text-slate-700 hover:text-cyan-800 hover:bg-white/80 rounded-lg md:rounded-xl transition-all duration-300"
+              class="relative p-2 md:p-2.5 text-slate-700 hover:text-slate-900 hover:bg-white/70 rounded-lg md:rounded-xl transition-all duration-300"
             >
               <BellIcon class="w-5 h-5" />
               <span v-if="notifications.length > 0" class="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-slate-900"></span>
             </button>
 
             <transition name="fade">
-              <div v-if="notifOpen" class="absolute right-0 mt-2 w-80 bg-white/95 text-slate-800 rounded-2xl shadow-2xl border border-cyan-100 overflow-hidden z-50 backdrop-blur-xl">
-                <div class="px-4 py-3 bg-cyan-50/70 border-b border-cyan-100 flex items-center justify-between">
+              <div v-if="notifOpen" class="absolute right-0 mt-2 w-80 bg-white/95 text-slate-800 rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50 backdrop-blur-xl">
+                <div class="px-4 py-3 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between">
                   <h4 class="font-bold text-slate-800">通知消息</h4>
-                  <router-link to="/notifications" @click="notifOpen = false" class="text-xs text-cyan-700 hover:underline">设置</router-link>
+                  <router-link to="/notifications" @click="notifOpen = false" class="text-xs text-slate-600 hover:text-slate-900 hover:underline">设置</router-link>
                 </div>
                 <div class="max-h-96 overflow-y-auto">
                   <div v-if="notifications.length === 0" class="p-8 text-center text-slate-400 text-sm">
@@ -124,7 +132,7 @@
                     <div
                       v-for="n in notifications"
                       :key="n.id"
-                      class="px-4 py-3 border-b border-slate-100 hover:bg-cyan-50/60 transition-colors"
+                      class="px-4 py-3 border-b border-slate-100 hover:bg-slate-50 transition-colors"
                     >
                       <div class="flex items-start gap-3">
                         <div :class="n.type === 'success' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'" class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
@@ -206,8 +214,6 @@ const handleResize = () => {
 onMounted(() => {
   initTheme()
   window.addEventListener('resize', handleResize)
-  window.addEventListener('touchstart', handleMobileInteraction, { passive: true })
-  window.addEventListener('scroll', handleMobileInteraction, { passive: true })
   handleResize()
   scheduleMobileToolbarHide()
   startAuthSessionWatcher()
@@ -215,8 +221,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
-  window.removeEventListener('touchstart', handleMobileInteraction)
-  window.removeEventListener('scroll', handleMobileInteraction)
   clearMobileToolbarTimer()
   stopAuthSessionWatcher()
 })
@@ -257,17 +261,13 @@ function scheduleMobileToolbarHide() {
   }
   mobileToolbarTimer = window.setTimeout(() => {
     mobileToolbarVisible.value = false
-  }, 2200)
+  }, 1500)
 }
 
 function showMobileToolbar() {
   if (!isMobile.value) return
   mobileToolbarVisible.value = true
   scheduleMobileToolbarHide()
-}
-
-function handleMobileInteraction() {
-  showMobileToolbar()
 }
 
 function toggleMainMenu() {

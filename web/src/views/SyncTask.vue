@@ -222,9 +222,18 @@
             <div v-if="history.length === 0" class="text-center text-slate-400 text-sm py-6">暂无同步记录</div>
             <div v-for="task in history.slice(0, 5)" :key="task.id" class="p-3 rounded-xl border border-slate-200 bg-slate-50">
               <p class="text-sm font-black text-slate-900 truncate">{{ task.local_path }}</p>
-              <div class="mt-1 flex items-center justify-between">
+              <div class="mt-1 flex items-center justify-between gap-2">
                 <span class="text-[10px] text-slate-600 font-mono truncate max-w-[45%]">{{ task.bucket_id }}</span>
-                <span :class="getStatusClass(task.status)" class="badge !px-2 !font-black">{{ getStatusText(task.status) }}</span>
+                <div class="flex items-center gap-2">
+                  <span :class="getStatusClass(task.status)" class="badge !px-2 !font-black">{{ getStatusText(task.status) }}</span>
+                  <button
+                    @click="removeTask(task.id)"
+                    class="text-[10px] font-black text-rose-600 hover:text-rose-700 hover:underline"
+                    title="删除记录"
+                  >
+                    删除
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -250,6 +259,7 @@
               <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">Bucket</th>
               <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">方向</th>
               <th class="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-400">状态</th>
+              <th class="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">操作</th>
               <th class="px-8 py-5 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">时间</th>
             </tr>
           </thead>
@@ -267,6 +277,14 @@
                 </div>
               </td>
               <td class="px-8 py-5"><span :class="getStatusClass(task.status)" class="badge !px-4 shadow-sm border-transparent group-hover:border-current transition-all">{{ getStatusText(task.status) }}</span></td>
+              <td class="px-8 py-5 text-right">
+                <button
+                  @click="removeTask(task.id)"
+                  class="text-xs font-black text-rose-600 hover:text-rose-700 hover:underline"
+                >
+                  删除
+                </button>
+              </td>
               <td class="px-8 py-5 text-right"><span class="text-xs font-black text-slate-500 font-mono uppercase">{{ formatDate(task.created_at) }}</span></td>
             </tr>
           </tbody>
@@ -602,6 +620,19 @@ async function loadHistory() {
     history.value = res.data || []
   } catch (e) {
     console.error('Failed to load history:', e)
+  }
+}
+
+async function removeTask(taskId) {
+  if (!taskId) return
+  if (!confirm('确定删除这条同步记录吗？')) return
+  try {
+    await syncApi.deleteTask(taskId)
+    showSyncNotice('success', '同步记录已删除')
+    await loadHistory()
+  } catch (e) {
+    console.error('Delete sync task failed:', e)
+    showSyncNotice('error', '删除失败: ' + (e.response?.data?.detail || e.message))
   }
 }
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
 
 from ...models.schemas import SyncTask, SyncTaskCreate, SyncPlan, SyncResult
-from ...models.database import save_sync_task, get_sync_tasks, add_audit_log
+from ...models.database import save_sync_task, get_sync_tasks, delete_sync_task, add_audit_log
 from ...services.sync_engine import create_dry_run_plan
 from ...services.sync_queue import enqueue_sync_task, get_queue_size
 
@@ -86,3 +86,21 @@ async def get_task(task_id: str) -> SyncTask:
         if task.id == task_id:
             return task
     raise HTTPException(status_code=404, detail="Task not found")
+
+
+@router.delete("/task/{task_id}")
+async def remove_task(task_id: str, request: Request) -> dict:
+    actor = getattr(request.state, "user", "web_user")
+    ip = request.client.host if request.client else ""
+    deleted = delete_sync_task(task_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Task not found")
+    add_audit_log(
+        actor,
+        "sync_delete",
+        "sync_task",
+        f"删除同步任务记录: {task_id}",
+        {"task_id": task_id},
+        ip
+    )
+    return {"success": True, "task_id": task_id}

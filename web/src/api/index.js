@@ -80,7 +80,9 @@ export const syncApi = {
 
   history: (limit = 50) => api.get('/sync/history', { params: { limit } }),
 
-  getTask: (taskId) => api.get(`/sync/task/${taskId}`)
+  getTask: (taskId) => api.get(`/sync/task/${taskId}`),
+
+  deleteTask: (taskId) => api.delete(`/sync/task/${taskId}`)
 }
 
 export const scheduleApi = {

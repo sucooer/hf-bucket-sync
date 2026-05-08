@@ -158,6 +158,16 @@ def get_sync_tasks(limit: int = 50) -> list[SyncTask]:
     return tasks
 
 
+def delete_sync_task(task_id: str) -> bool:
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM sync_tasks WHERE id = ?", (task_id,))
+    deleted = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return deleted
+
+
 def update_sync_task_status(task_id: str, status: str, message: Optional[str] = None,
                             stats: Optional[dict] = None, completed_at: Optional[datetime] = None):
     conn = get_db()

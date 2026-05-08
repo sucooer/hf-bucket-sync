@@ -1,5 +1,6 @@
 services:
   app:
+    container_name: hf-bucket-sync
     user: "0:0" # Please replace `0:0` with the actual user ID and group ID you want to use.
     build:
       context: .

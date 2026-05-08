@@ -75,7 +75,7 @@
         <button
           v-if="isMobile && !mobileToolbarVisible"
           @click="showMobileToolbar()"
-          class="w-10 h-10 rounded-full border border-slate-300/80 bg-slate-100/90 text-slate-600 shadow-lg shadow-slate-300/40 backdrop-blur-md"
+          class="w-10 h-10 rounded-full border border-cyan-500/30 bg-[color:var(--accent)] text-white shadow-lg shadow-cyan-900/25 backdrop-blur-md hover:brightness-110 transition-all duration-300 dark:border-cyan-400/40"
           title="打开菜单"
         >
           <Bars3Icon class="w-5 h-5 mx-auto" />

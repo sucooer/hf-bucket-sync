@@ -6,6 +6,7 @@
         <p class="hidden md:block text-slate-500 font-medium mt-2">手动触发本地目录与远程 Bucket 之间的同步。</p>
       </div>
     </div>
+
     <div
       v-if="syncNotice.visible"
       class="animate-fade-up rounded-2xl border px-4 py-3 text-sm font-bold"
@@ -17,7 +18,6 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-      <!-- Configuration Form -->
       <div class="lg:col-span-8 space-y-8 animate-fade-up delay-1">
         <div class="card glass shadow-2xl shadow-slate-200/50 overflow-visible">
           <div class="flex items-center gap-4 mb-10">
@@ -32,18 +32,8 @@
 
           <div class="space-y-10">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <UISelect
-                v-model="form.direction"
-                :options="directionOptions"
-                label="同步方向"
-              />
-
-              <UISelect
-                v-model="form.bucketId"
-                :options="bucketOptions"
-                label="目标 Bucket"
-                placeholder="请选择 Bucket"
-              />
+              <UISelect v-model="form.direction" :options="directionOptions" label="同步方向" />
+              <UISelect v-model="form.bucketId" :options="bucketOptions" label="目标 Bucket" placeholder="请选择 Bucket" />
             </div>
 
             <div class="space-y-3">
@@ -53,11 +43,7 @@
                 <ComputerDesktopIcon class="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-300 group-hover:text-blue-500 transition-colors" />
               </div>
               <div class="flex justify-end">
-                <button
-                  @click="openPathPicker()"
-                  type="button"
-                  class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-black text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors"
-                >
+                <button @click="openPathPicker()" type="button" class="px-4 py-2 rounded-xl border border-slate-200 text-xs font-black text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-colors">
                   选择目录
                 </button>
               </div>
@@ -114,7 +100,6 @@
         </div>
       </div>
 
-      <!-- Preview Panel -->
       <div class="lg:col-span-4 space-y-8 animate-fade-up delay-2">
         <div class="card glass border-dashed border-slate-300 min-h-[320px] md:min-h-[420px] max-h-[75vh] overflow-y-auto custom-scrollbar flex flex-col shadow-inner">
           <div class="flex items-center gap-3 mb-8">
@@ -141,15 +126,11 @@
             <div class="grid grid-cols-2 gap-6">
               <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm group hover:border-blue-200 transition-colors">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">上传</p>
-                <p class="text-4xl font-black text-blue-600 mt-2 group-hover:scale-110 transition-transform origin-left">
-                  {{ plan.uploads?.length || 0 }}
-                </p>
+                <p class="text-4xl font-black text-blue-600 mt-2 group-hover:scale-110 transition-transform origin-left">{{ plan.uploads?.length || 0 }}</p>
               </div>
               <div class="bg-green-50/50 p-5 rounded-2xl border border-green-100 shadow-sm group hover:border-green-300 transition-colors">
                 <p class="text-[10px] font-black text-green-600 uppercase tracking-widest">下载</p>
-                <p class="text-4xl font-black text-green-600 mt-2 group-hover:scale-110 transition-transform origin-left">
-                  {{ plan.downloads?.length || 0 }}
-                </p>
+                <p class="text-4xl font-black text-green-600 mt-2 group-hover:scale-110 transition-transform origin-left">{{ plan.downloads?.length || 0 }}</p>
               </div>
               <div class="bg-rose-50/50 p-5 rounded-2xl border border-rose-100 shadow-sm group hover:border-rose-300 transition-colors">
                 <p class="text-[10px] font-black text-rose-400 uppercase tracking-widest">删除</p>
@@ -158,20 +139,6 @@
               <div class="bg-gray-50/50 p-5 rounded-2xl border border-slate-200 shadow-sm group hover:border-slate-300 transition-colors">
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">跳过</p>
                 <p class="text-4xl font-black text-slate-600 mt-2 group-hover:scale-110 transition-transform origin-left">{{ plan.skips?.length || 0 }}</p>
-              </div>
-            </div>
-
-            <div v-if="plan.uploads?.length > 0">
-              <div class="flex items-center justify-between mb-4">
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">将上传的文件:</p>
-              </div>
-              <div class="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-                <div v-for="f in plan.uploads.slice(0, 10)" :key="f.path" class="p-3 bg-white/50 rounded-xl border border-slate-100 text-[11px] font-mono text-slate-600 truncate hover:bg-white transition-colors">
-                  {{ f.path }}
-                </div>
-                <div v-if="plan.uploads.length > 10" class="text-[10px] text-center text-slate-400 font-black uppercase tracking-widest pt-4 animate-pulse">
-                  ... 还有 {{ plan.uploads.length - 10 }} 个文件
-                </div>
               </div>
             </div>
 
@@ -198,60 +165,38 @@
             </div>
           </div>
         </div>
-
-        <!-- Recent History -->
-        <div class="card !p-0 overflow-hidden animate-fade-up delay-3 shadow-xl">
-          <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/20">
-            <div class="flex items-center gap-4">
-              <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600">
-                <ClockIcon class="w-6 h-6" />
-              </div>
-              <h3 class="text-lg font-black text-slate-900 tracking-tight">最近同步</h3>
-            </div>
-            <div class="flex items-center gap-3">
-              <button
-                @click="recentHistoryCollapsed = !recentHistoryCollapsed"
-                class="text-xs font-black text-slate-500 hover:text-slate-700"
-              >
-                {{ recentHistoryCollapsed ? '展开' : '折叠' }}
-              </button>
-              <a href="#sync-history" class="text-xs font-black text-blue-600 hover:underline">查看全部</a>
-            </div>
-          </div>
-          <div v-if="!recentHistoryCollapsed" class="p-4 space-y-2">
-            <div v-if="history.length === 0" class="text-center text-slate-400 text-sm py-6">暂无同步记录</div>
-            <div v-for="task in history.slice(0, 5)" :key="task.id" class="p-3 rounded-xl border border-slate-200 bg-slate-50">
-              <p class="text-sm font-black text-slate-900 truncate">{{ task.local_path }}</p>
-              <div class="mt-1 flex items-center justify-between gap-2">
-                <span class="text-[10px] text-slate-600 font-mono truncate max-w-[45%]">{{ task.bucket_id }}</span>
-                <div class="flex items-center gap-2">
-                  <span :class="getStatusClass(task.status)" class="badge !px-2 !font-black">{{ getStatusText(task.status) }}</span>
-                  <button
-                    @click="removeTask(task.id)"
-                    class="text-[10px] font-black text-rose-600 hover:text-rose-700 hover:underline"
-                    title="删除记录"
-                  >
-                    删除
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
-    <!-- Full History Table -->
     <div id="sync-history" class="card !p-0 overflow-hidden animate-fade-up delay-3 shadow-xl">
-      <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/20">
+      <div class="px-6 md:px-8 py-5 md:py-6 border-b border-slate-100 bg-slate-50/20">
         <div class="flex items-center gap-4">
           <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600">
             <ClockIcon class="w-6 h-6" />
           </div>
-          <h3 class="text-xl font-black text-slate-900 tracking-tight">同步历史</h3>
+          <h3 class="text-lg md:text-xl font-black text-slate-900 tracking-tight">同步历史</h3>
         </div>
       </div>
-      <div class="overflow-x-auto">
+
+      <div class="md:hidden p-4 space-y-3">
+        <div v-if="history.length === 0" class="text-center text-slate-400 text-sm py-6">暂无同步记录</div>
+        <div v-for="task in history" :key="task.id" class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+          <p class="text-sm font-black text-slate-900 break-all leading-snug">{{ task.local_path }}</p>
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-[11px] text-slate-500 font-mono truncate">{{ task.bucket_id }}</span>
+            <span :class="getStatusClass(task.status)" class="badge !px-2">{{ getStatusText(task.status) }}</span>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-slate-500">
+            <span class="font-bold">{{ task.direction === 'upload' ? '上传' : '下载' }}</span>
+            <span class="font-mono">{{ formatDate(task.created_at) }}</span>
+          </div>
+          <div class="pt-1">
+            <button @click="removeTask(task.id)" class="text-xs font-black text-rose-600 hover:text-rose-700 hover:underline">删除</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="hidden md:block overflow-x-auto">
         <table class="w-full">
           <thead>
             <tr class="bg-slate-50/50 text-left border-b border-slate-100">
@@ -278,12 +223,7 @@
               </td>
               <td class="px-8 py-5"><span :class="getStatusClass(task.status)" class="badge !px-4 shadow-sm border-transparent group-hover:border-current transition-all">{{ getStatusText(task.status) }}</span></td>
               <td class="px-8 py-5 text-right">
-                <button
-                  @click="removeTask(task.id)"
-                  class="text-xs font-black text-rose-600 hover:text-rose-700 hover:underline"
-                >
-                  删除
-                </button>
+                <button @click="removeTask(task.id)" class="text-xs font-black text-rose-600 hover:text-rose-700 hover:underline">删除</button>
               </td>
               <td class="px-8 py-5 text-right"><span class="text-xs font-black text-slate-500 font-mono uppercase">{{ formatDate(task.created_at) }}</span></td>
             </tr>
@@ -297,37 +237,19 @@
         <div class="w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden">
           <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
             <h3 class="text-lg font-black text-slate-900">选择本地目录</h3>
-            <button @click="closePathPicker()" class="w-9 h-9 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors">
-              ✕
-            </button>
+            <button @click="closePathPicker()" class="w-9 h-9 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors">✕</button>
           </div>
           <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
-            <button @click="goParentDir()" :disabled="!canGoParent || pickerLoading" class="px-3 py-1.5 rounded-lg text-xs font-black border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50">
-              上一级
-            </button>
-            <input
-              v-model="pickerPathInput"
-              @keyup.enter="jumpToPath()"
-              class="input !py-2 text-xs font-mono"
-              placeholder="输入目录路径并回车"
-            />
-            <button @click="jumpToPath()" :disabled="pickerLoading" class="px-3 py-1.5 rounded-lg text-xs font-black border border-slate-200 text-slate-600 hover:bg-slate-50">
-              跳转
-            </button>
+            <button @click="goParentDir()" :disabled="!canGoParent || pickerLoading" class="px-3 py-1.5 rounded-lg text-xs font-black border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50">上一级</button>
+            <input v-model="pickerPathInput" @keyup.enter="jumpToPath()" class="input !py-2 text-xs font-mono" placeholder="输入目录路径并回车" />
+            <button @click="jumpToPath()" :disabled="pickerLoading" class="px-3 py-1.5 rounded-lg text-xs font-black border border-slate-200 text-slate-600 hover:bg-slate-50">跳转</button>
           </div>
           <div class="p-4 max-h-[55vh] overflow-y-auto custom-scrollbar">
-            <div v-if="pickerError" class="mb-3 p-3 bg-rose-50 border border-rose-100 rounded-xl text-xs text-rose-600 font-bold">
-              {{ pickerError }}
-            </div>
+            <div v-if="pickerError" class="mb-3 p-3 bg-rose-50 border border-rose-100 rounded-xl text-xs text-rose-600 font-bold">{{ pickerError }}</div>
             <div v-if="pickerLoading" class="py-12 text-center text-slate-400 text-sm">加载中...</div>
             <div v-else-if="pickerDirs.length === 0" class="py-12 text-center text-slate-400 text-sm">此目录下暂无子目录</div>
             <div v-else class="space-y-2">
-              <button
-                v-for="dir in pickerDirs"
-                :key="dir.path"
-                @click="enterDir(dir.path)"
-                class="w-full text-left px-4 py-3 rounded-xl border border-slate-100 hover:bg-slate-50 hover:border-slate-200 transition-colors"
-              >
+              <button v-for="dir in pickerDirs" :key="dir.path" @click="enterDir(dir.path)" class="w-full text-left px-4 py-3 rounded-xl border border-slate-100 hover:bg-slate-50 hover:border-slate-200 transition-colors">
                 <p class="text-sm font-black text-slate-800 truncate">{{ dir.name }}</p>
                 <p class="text-[10px] text-slate-400 font-mono truncate mt-1">{{ dir.path }}</p>
               </button>
@@ -335,13 +257,7 @@
           </div>
           <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/50">
             <p class="text-xs text-slate-500 font-mono truncate max-w-[60%]">{{ pickerPath }}</p>
-            <button
-              @click="selectCurrentPath()"
-              :disabled="!pickerPath || pickerLoading"
-              class="btn-primary !py-2 !px-5 text-xs"
-            >
-              选择当前目录
-            </button>
+            <button @click="selectCurrentPath()" :disabled="!pickerPath || pickerLoading" class="btn-primary !py-2 !px-5 text-xs">选择当前目录</button>
           </div>
         </div>
       </div>
@@ -358,12 +274,10 @@ import {
   MagnifyingGlassIcon,
   PlayIcon,
   DocumentMagnifyingGlassIcon,
-  ArrowPathIcon,
   ClockIcon,
   ComputerDesktopIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-  ChevronDownIcon,
   ExclamationTriangleIcon
 } from '@heroicons/vue/24/outline'
 
@@ -382,8 +296,6 @@ const history = ref([])
 const plan = ref({})
 const planReady = ref(false)
 const running = ref(false)
-const loading = ref(false)
-const recentHistoryCollapsed = ref(false)
 const previewFilter = ref('all')
 const pathPickerVisible = ref(false)
 const pickerPath = ref('')
@@ -392,31 +304,19 @@ const pickerDirs = ref([])
 const pickerLoading = ref(false)
 const pickerError = ref('')
 const pickerBaseDir = ref('/data')
-const syncNotice = ref({
-  visible: false,
-  type: 'success',
-  message: ''
-})
+const syncNotice = ref({ visible: false, type: 'success', message: '' })
 
-const isValid = computed(() => {
-  return form.value.localPath && form.value.bucketId
-})
-
+const isValid = computed(() => form.value.localPath && form.value.bucketId)
 const directionOptions = [
   { label: '上传 (本地 → HF Bucket)', value: 'upload' },
   { label: '下载 (HF Bucket → 本地)', value: 'download' }
 ]
-
-const bucketOptions = computed(() => {
-  return buckets.value.map(b => ({ label: b.id, value: b.id }))
-})
-
+const bucketOptions = computed(() => buckets.value.map(b => ({ label: b.id, value: b.id })))
 const previewCounts = computed(() => ({
   added: plan.value.uploads?.length || 0,
   deleted: plan.value.deletes?.length || 0,
   changed: (plan.value.uploads?.length || 0) + (plan.value.downloads?.length || 0)
 }))
-
 const filteredPreviewItems = computed(() => {
   const uploads = (plan.value.uploads || []).map(i => ({ ...i, kind: 'added' }))
   const deletes = (plan.value.deletes || []).map(i => ({ ...i, kind: 'deleted' }))
@@ -461,11 +361,11 @@ function getStatusText(status) {
 function formatDate(dateStr) {
   if (!dateStr) return '-'
   const date = new Date(dateStr)
-  return date.toLocaleString('zh-CN', { 
-    month: 'short', 
-    day: 'numeric', 
-    hour: '2-digit', 
-    minute: '2-digit' 
+  return date.toLocaleString('zh-CN', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   })
 }
 
@@ -550,11 +450,7 @@ function selectCurrentPath() {
 }
 
 function showSyncNotice(type, message) {
-  syncNotice.value = {
-    visible: true,
-    type,
-    message
-  }
+  syncNotice.value = { visible: true, type, message }
   setTimeout(() => {
     syncNotice.value.visible = false
   }, 3200)
@@ -581,7 +477,7 @@ async function dryRun() {
     planReady.value = true
   } catch (e) {
     console.error('Preview failed:', e)
-    alert('预览失败: ' + (e.response?.data?.detail || e.message))
+    showSyncNotice('error', '预览失败: ' + (e.response?.data?.detail || e.message))
   } finally {
     running.value = false
   }
